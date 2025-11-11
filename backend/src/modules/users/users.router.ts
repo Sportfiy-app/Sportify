@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import { authenticate } from '../../middleware/auth';
 import { validateBody } from '../../middleware/validate';
+
 import { UsersService } from './users.service';
 
 const router = Router();

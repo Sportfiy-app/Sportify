@@ -1,10 +1,10 @@
+import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
-import cors from 'cors';
 import morgan from 'morgan';
 
-import routes from './routes';
 import { notFoundHandler, errorHandler } from './middleware/error-handler';
+import routes from './routes';
 
 export function createApp() {
   const app = express();

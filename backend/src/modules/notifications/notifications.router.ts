@@ -1,6 +1,7 @@
 import { Router } from 'express';
 
 import { authenticate } from '../../middleware/auth';
+
 import { NotificationsService } from './notifications.service';
 
 const router = Router();

@@ -4,6 +4,7 @@ import createHttpError from 'http-errors';
 import { prisma } from '../../db/prisma';
 import { JwtUser } from '../../types';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../../utils/jwt';
+
 import { registerSchema, loginSchema } from './auth.schema';
 
 export class AuthService {

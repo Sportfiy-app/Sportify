@@ -11,6 +11,7 @@ export function errorHandler(
   res: Response,
   _next: NextFunction,
 ) {
+  void _next;
   const httpError = createHttpError(err);
   const status = httpError.status ?? 500;
   const response = {

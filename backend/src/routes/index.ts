@@ -1,12 +1,12 @@
 import { Router } from 'express';
 
 import authRouter from '../modules/auth/auth.router';
-import usersRouter from '../modules/users/users.router';
-import clubsRouter from '../modules/clubs/clubs.router';
 import bookingsRouter from '../modules/bookings/bookings.router';
-import paymentsRouter from '../modules/payments/payments.router';
+import clubsRouter from '../modules/clubs/clubs.router';
 import notificationsRouter from '../modules/notifications/notifications.router';
+import paymentsRouter from '../modules/payments/payments.router';
 import reviewsRouter from '../modules/reviews/reviews.router';
+import usersRouter from '../modules/users/users.router';
 
 const router = Router();
 
