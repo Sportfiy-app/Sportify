@@ -1,8 +1,12 @@
 import 'package:get/get.dart';
 
+import '../modules/auth/bindings/forgot_password_binding.dart';
 import '../modules/auth/bindings/login_binding.dart';
 import '../modules/auth/views/login_email_view.dart';
 import '../modules/auth/views/login_phone_view.dart';
+import '../modules/auth/views/forgot_password_email_sent_view.dart';
+import '../modules/auth/views/forgot_password_request_view.dart';
+import '../modules/auth/views/forgot_password_verify_view.dart';
 import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/views/home_view.dart';
 import '../modules/intro/bindings/intro_binding.dart';
@@ -32,6 +36,21 @@ class AppPages {
       name: Routes.loginPhone,
       page: LoginPhoneView.new,
       binding: LoginBinding(),
+    ),
+    GetPage(
+      name: Routes.forgotPasswordRequest,
+      page: ForgotPasswordRequestView.new,
+      binding: ForgotPasswordBinding(),
+    ),
+    GetPage(
+      name: Routes.forgotPasswordVerify,
+      page: ForgotPasswordVerifyView.new,
+      binding: ForgotPasswordBinding(),
+    ),
+    GetPage(
+      name: Routes.forgotPasswordEmailSent,
+      page: ForgotPasswordEmailSentView.new,
+      binding: ForgotPasswordBinding(),
     ),
     GetPage(name: Routes.home, page: HomeView.new, binding: HomeBinding()),
   ];

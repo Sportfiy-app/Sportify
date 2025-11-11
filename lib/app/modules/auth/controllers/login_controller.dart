@@ -61,7 +61,7 @@ class LoginController extends GetxController {
   }
 
   void resetPassword() {
-    Get.snackbar('Réinitialiser', 'Lien de réinitialisation envoyé');
+    Get.toNamed(Routes.forgotPasswordRequest);
   }
 
   void contactSupport() {
