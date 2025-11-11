@@ -6,7 +6,16 @@ export class UsersService {
   async findById(id: string) {
     const user = await prisma.user.findUnique({
       where: { id },
-      select: { id, email, phone, firstName, lastName, role, createdAt, updatedAt },
+      select: {
+        id: true,
+        email: true,
+        phone: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
     if (!user) {
       throw createHttpError(404, 'User not found');
@@ -21,7 +30,16 @@ export class UsersService {
     return prisma.user.update({
       where: { id },
       data,
-      select: { id, email, phone, firstName, lastName, role, createdAt, updatedAt },
+      select: {
+        id: true,
+        email: true,
+        phone: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
   }
 }

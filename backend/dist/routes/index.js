@@ -1,0 +1,22 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const auth_router_1 = __importDefault(require("../modules/auth/auth.router"));
+const bookings_router_1 = __importDefault(require("../modules/bookings/bookings.router"));
+const clubs_router_1 = __importDefault(require("../modules/clubs/clubs.router"));
+const notifications_router_1 = __importDefault(require("../modules/notifications/notifications.router"));
+const payments_router_1 = __importDefault(require("../modules/payments/payments.router"));
+const reviews_router_1 = __importDefault(require("../modules/reviews/reviews.router"));
+const users_router_1 = __importDefault(require("../modules/users/users.router"));
+const router = (0, express_1.Router)();
+router.use('/auth', auth_router_1.default);
+router.use('/users', users_router_1.default);
+router.use('/clubs', clubs_router_1.default);
+router.use('/bookings', bookings_router_1.default);
+router.use('/payments', payments_router_1.default);
+router.use('/notifications', notifications_router_1.default);
+router.use('/reviews', reviews_router_1.default);
+exports.default = router;
