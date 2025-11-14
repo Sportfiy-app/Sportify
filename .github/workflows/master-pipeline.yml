@@ -523,9 +523,14 @@ jobs:
       - name: Check if should deploy
         id: check
         run: |
-          if [ "${{ github.event.action }}" == "closed" ]; then
-            echo "should-deploy=false" >> $GITHUB_OUTPUT
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            if [ "${{ github.event.action }}" == "closed" ]; then
+              echo "should-deploy=false" >> $GITHUB_OUTPUT
+            else
+              echo "should-deploy=true" >> $GITHUB_OUTPUT
+            fi
           else
+            # For main branch, always deploy to review for testing
             echo "should-deploy=true" >> $GITHUB_OUTPUT
           fi
 
@@ -533,7 +538,10 @@ jobs:
     name: 🌿 Review → Backend
     runs-on: ubuntu-latest
     needs: [show-pipeline-tree, determine-review]
-    if: needs.determine-review.outputs.should-deploy == 'true'
+    if: |
+      always() &&
+      needs.determine-review.result == 'success' &&
+      needs.determine-review.outputs.should-deploy == 'true'
     environment:
       name: Review
     defaults:
@@ -671,7 +679,10 @@ jobs:
     name: 🌿 Staging → Frontend (Netlify)
     runs-on: ubuntu-latest
     needs: [show-pipeline-tree, determine-staging]
-    if: needs.determine-staging.outputs.should-deploy == 'true'
+    if: |
+      always() &&
+      needs.determine-staging.result == 'success' &&
+      needs.determine-staging.outputs.should-deploy == 'true'
     environment:
       name: Staging
 
