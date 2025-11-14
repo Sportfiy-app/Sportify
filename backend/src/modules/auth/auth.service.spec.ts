@@ -93,7 +93,7 @@ describe('AuthService', () => {
       const mockUser = {
         id: 'user-123',
         email: loginData.email,
-        password: 'hashedPassword',
+        passwordHash: 'hashedPassword',
         firstName: 'John',
         lastName: 'Doe',
         role: 'USER',
@@ -106,7 +106,7 @@ describe('AuthService', () => {
 
       expect(result).toHaveProperty('accessToken');
       expect(result).toHaveProperty('refreshToken');
-      expect(bcrypt.compare).toHaveBeenCalledWith(loginData.password, mockUser.password);
+      expect(bcrypt.compare).toHaveBeenCalledWith(loginData.password, mockUser.passwordHash);
     });
 
     it('should throw error with incorrect password', async () => {

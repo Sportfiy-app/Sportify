@@ -101,14 +101,14 @@ describe('VerificationService', () => {
       const code = '123456';
       const userId = 'user-123';
 
-      (prisma.user.findFirst as jest.Mock).mockResolvedValue({
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: userId,
         phone,
         phoneVerificationCode: code,
         phoneVerificationExpires: new Date(Date.now() - 1000), // Expired
       });
 
-      await expect(verificationService.verifySmsCode(phone, code, userId)).rejects.toThrow();
+      await expect(verificationService.verifySmsCode(phone, code, userId)).rejects.toThrow('Verification code has expired');
     });
   });
 
