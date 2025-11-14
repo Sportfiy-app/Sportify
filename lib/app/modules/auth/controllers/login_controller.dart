@@ -92,7 +92,18 @@ class LoginController extends GetxController {
       Get.offAllNamed(Routes.home);
       Get.snackbar('Bienvenue', 'Connexion réussie sur Sportify.');
     } on ApiException catch (error) {
-      Get.snackbar('Connexion impossible', error.message);
+      // Améliorer le message d'erreur pour 401
+      String errorMessage = error.message;
+      if (error.statusCode == 401) {
+        errorMessage = 'Email ou mot de passe incorrect. Vérifiez vos identifiants ou créez un compte.';
+      } else if (error.statusCode == 400) {
+        errorMessage = 'Données invalides. Vérifiez que votre email est valide et que le mot de passe fait au moins 8 caractères.';
+      }
+      Get.snackbar(
+        'Connexion impossible',
+        errorMessage,
+        duration: const Duration(seconds: 4),
+      );
     } catch (error) {
       Get.snackbar('Erreur', 'Une erreur inattendue est survenue. Merci de réessayer.');
     } finally {
