@@ -127,6 +127,12 @@ describe('EventsService', () => {
         eventId,
         userId,
         status: ParticipationStatus.JOINED,
+        user: {
+          id: userId,
+          firstName: 'Test',
+          lastName: 'User',
+          avatarUrl: null,
+        },
       });
       (prisma.event.update as jest.Mock).mockResolvedValue({
         ...mockEvent,
