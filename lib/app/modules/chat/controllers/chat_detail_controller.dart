@@ -20,7 +20,7 @@ class ChatDetailController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxBool isSending = false.obs;
   final RxString? errorMessage = RxString(null);
-  final RxString? currentUserId = RxString(null);
+  final RxString currentUserId = ''.obs;
   final Rx<MessageUser?> otherUser = Rx<MessageUser?>(null);
 
   String? _otherUserId;
@@ -89,7 +89,7 @@ class ChatDetailController extends GetxController {
   }
 
   ChatMessage _convertMessageToChatMessage(MessageModel msg) {
-    final isMe = msg.senderId == currentUserId.value;
+    final isMe = currentUserId.value.isNotEmpty && msg.senderId == currentUserId.value;
     final sender = isMe ? ChatSender.me : ChatSender.them;
 
     // Determine message type (for now, only text is supported)

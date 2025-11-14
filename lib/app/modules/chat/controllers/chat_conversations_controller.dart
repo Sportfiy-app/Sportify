@@ -19,7 +19,7 @@ class ChatConversationsController extends GetxController {
   final RxList<ConversationItem> conversations = <ConversationItem>[].obs;
   final RxBool isLoading = false.obs;
   final RxString? errorMessage = RxString(null);
-  final RxString? currentUserId = RxString(null);
+  final RxString currentUserId = ''.obs;
 
   final RxString selectedFilter = 'Tous'.obs;
 
@@ -89,7 +89,7 @@ class ChatConversationsController extends GetxController {
   }
 
   ConversationItem _convertConversationToItem(ConversationModel conv) {
-    final isMe = conv.lastMessage.senderId == currentUserId.value;
+    final isMe = currentUserId.value.isNotEmpty && conv.lastMessage.senderId == currentUserId.value;
     final lastStatus = isMe
         ? (conv.lastMessage.read ? MessageStatus.read : MessageStatus.sent)
         : null;

@@ -477,7 +477,7 @@ class _InputBar extends GetView<ChatDetailController> {
               alignment: Alignment.center,
               child: Obx(
                 () => Icon(
-                  controller.messageController.text.isNotEmpty || controller.isRecording.value ? Icons.send_rounded : Icons.mic_rounded,
+                  controller.messageController.text.isNotEmpty ? Icons.send_rounded : Icons.mic_rounded,
                   color: Colors.white,
                   size: 20 * scale,
                 ),

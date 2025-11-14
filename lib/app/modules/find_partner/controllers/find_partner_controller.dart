@@ -1169,7 +1169,7 @@ class FindPartnerController extends GetxController {
 
   final RxBool hasSentRequest = false.obs;
   final RxBool isLoadingRequest = false.obs;
-  final RxString? currentUserId = RxString(null);
+  final RxString currentUserId = ''.obs;
   String? _profileUserId;
 
   @override
@@ -1199,7 +1199,7 @@ class FindPartnerController extends GetxController {
       _profileUserId = args['userId'] as String;
     }
 
-    if (_profileUserId == null || currentUserId.value == null) return;
+    if (_profileUserId == null || currentUserId.value.isEmpty) return;
 
     try {
       final status = await _friendsRepository.getFriendshipStatus(_profileUserId!);
@@ -1216,7 +1216,7 @@ class FindPartnerController extends GetxController {
   }
 
   Future<void> toggleRequest() async {
-    if (_profileUserId == null || currentUserId.value == null) {
+    if (_profileUserId == null || currentUserId.value.isEmpty) {
       Get.snackbar('Erreur', 'Impossible d\'envoyer la demande');
       return;
     }
@@ -1251,8 +1251,6 @@ class FindPartnerController extends GetxController {
     }
 
     try {
-      // Get user info for chat header
-      final user = await _usersRepository.getCurrentUser();
       // For now, we'll use the profile name and a default avatar
       // In a real scenario, you'd fetch the other user's profile
       Get.toNamed(Routes.chatDetail, arguments: {
@@ -1439,10 +1437,6 @@ class FindPartnerController extends GetxController {
 
   void reportPendingProfile() {
     Get.snackbar('Signalement', 'Merci, nous allons examiner le profil d\'${pendingProfile.name}.');
-  }
-
-  void sendProfileMessage() {
-    openDirectMessage(profile.name);
   }
 
   @override

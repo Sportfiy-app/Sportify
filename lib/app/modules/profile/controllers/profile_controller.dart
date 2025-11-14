@@ -447,7 +447,7 @@ class QuickAction {
     this.route,
   });
 
-  final SportIcon icon;
+  final dynamic icon; // Can be SportIcon or IconData
   final String title;
   final String subtitle;
   final String? route;
