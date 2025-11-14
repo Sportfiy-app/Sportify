@@ -4,10 +4,8 @@
     "types": ["jest", "node"],
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "rootDir": ".",
     "noEmit": true
   },
-  "include": ["**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": ["**/*.ts", "../src/**/*.ts"],
+  "exclude": ["node_modules", "../dist"]
 }
-
