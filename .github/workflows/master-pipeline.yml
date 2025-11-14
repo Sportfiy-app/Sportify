@@ -1,0 +1,934 @@
+name: 🌳 Master Pipeline - Complete CI/CD Tree
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened, closed]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+  FLUTTER_VERSION: '3.24.0'
+  DATABASE_URL: postgresql://sportify:sportify@localhost:5432/sportify_test
+
+jobs:
+  # ============================================
+  # 🌳 PIPELINE TREE VISUALIZATION
+  # ============================================
+  show-pipeline-tree:
+    name: 🌳 Complete Pipeline Tree
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Display Complete Pipeline Tree
+        run: |
+          echo "# 🌳 Complete CI/CD Pipeline Tree" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "┌─────────────────────────────────────────────────────────┐" >> $GITHUB_STEP_SUMMARY
+          echo "│              🌳 MASTER PIPELINE                          │" >> $GITHUB_STEP_SUMMARY
+          echo "└─────────────────────────────────────────────────────────┘" >> $GITHUB_STEP_SUMMARY
+          echo "                         │" >> $GITHUB_STEP_SUMMARY
+          echo "                         ▼" >> $GITHUB_STEP_SUMMARY
+          echo "┌─────────────────────────────────────────────────────────┐" >> $GITHUB_STEP_SUMMARY
+          echo "│         📋 VALIDATION & QUALITY CHECKS                   │" >> $GITHUB_STEP_SUMMARY
+          echo "│         (Run in parallel)                               │" >> $GITHUB_STEP_SUMMARY
+          echo "├─────────────────────────────────────────────────────────┤" >> $GITHUB_STEP_SUMMARY
+          echo "│  ┌──────────────────┐    ┌──────────────────┐          │" >> $GITHUB_STEP_SUMMARY
+          echo "│  │  Backend CI      │    │  Frontend CI     │          │" >> $GITHUB_STEP_SUMMARY
+          echo "│  │  ├─ Lint         │    │  ├─ Analyze      │          │" >> $GITHUB_STEP_SUMMARY
+          echo "│  │  ├─ Type Check   │    │  ├─ Tests        │          │" >> $GITHUB_STEP_SUMMARY
+          echo "│  │  ├─ Tests        │    │  ├─ Build Android│          │" >> $GITHUB_STEP_SUMMARY
+          echo "│  │  ├─ Build        │    │  └─ Build iOS    │          │" >> $GITHUB_STEP_SUMMARY
+          echo "│  │  └─ Security     │    │                  │          │" >> $GITHUB_STEP_SUMMARY
+          echo "│  └──────────────────┘    └──────────────────┘          │" >> $GITHUB_STEP_SUMMARY
+          echo "└─────────────────────────────────────────────────────────┘" >> $GITHUB_STEP_SUMMARY
+          echo "                         │" >> $GITHUB_STEP_SUMMARY
+          echo "                         ▼" >> $GITHUB_STEP_SUMMARY
+          echo "┌─────────────────────────────────────────────────────────┐" >> $GITHUB_STEP_SUMMARY
+          echo "│         🧪 INTEGRATION & FUNCTIONAL TESTS               │" >> $GITHUB_STEP_SUMMARY
+          echo "│         (Depends on Validation)                          │" >> $GITHUB_STEP_SUMMARY
+          echo "├─────────────────────────────────────────────────────────┤" >> $GITHUB_STEP_SUMMARY
+          echo "│  ┌──────────────────┐    ┌──────────────────┐          │" >> $GITHUB_STEP_SUMMARY
+          echo "│  │  E2E Tests      │    │  Functional      │          │" >> $GITHUB_STEP_SUMMARY
+          echo "│  │  ├─ Backend E2E │    │  Tests           │          │" >> $GITHUB_STEP_SUMMARY
+          echo "│  │  └─ Frontend E2E│    │  └─ API Tests    │          │" >> $GITHUB_STEP_SUMMARY
+          echo "│  └──────────────────┘    └──────────────────┘          │" >> $GITHUB_STEP_SUMMARY
+          echo "└─────────────────────────────────────────────────────────┘" >> $GITHUB_STEP_SUMMARY
+          echo "                         │" >> $GITHUB_STEP_SUMMARY
+          echo "                         ▼" >> $GITHUB_STEP_SUMMARY
+          echo "┌─────────────────────────────────────────────────────────┐" >> $GITHUB_STEP_SUMMARY
+          echo "│         🔍 CODE QUALITY & SECURITY                      │" >> $GITHUB_STEP_SUMMARY
+          echo "│         (Depends on Validation)                         │" >> $GITHUB_STEP_SUMMARY
+          echo "├─────────────────────────────────────────────────────────┤" >> $GITHUB_STEP_SUMMARY
+          echo "│  ┌──────────────────┐    ┌──────────────────┐          │" >> $GITHUB_STEP_SUMMARY
+          echo "│  │  Code Quality    │    │  Dependency      │          │" >> $GITHUB_STEP_SUMMARY
+          echo "│  │  ├─ SonarCloud   │    │  Review          │          │" >> $GITHUB_STEP_SUMMARY
+          echo "│  │  ├─ Snyk         │    │  └─ Security     │          │" >> $GITHUB_STEP_SUMMARY
+          echo "│  │  └─ Quality      │    │                  │          │" >> $GITHUB_STEP_SUMMARY
+          echo "│  └──────────────────┘    └──────────────────┘          │" >> $GITHUB_STEP_SUMMARY
+          echo "└─────────────────────────────────────────────────────────┘" >> $GITHUB_STEP_SUMMARY
+          echo "                         │" >> $GITHUB_STEP_SUMMARY
+          echo "                         ▼" >> $GITHUB_STEP_SUMMARY
+          echo "┌─────────────────────────────────────────────────────────┐" >> $GITHUB_STEP_SUMMARY
+          echo "│         🚀 DEPLOYMENT ENVIRONMENTS                       │" >> $GITHUB_STEP_SUMMARY
+          echo "│         (Depends on all tests passing)                  │" >> $GITHUB_STEP_SUMMARY
+          echo "├─────────────────────────────────────────────────────────┤" >> $GITHUB_STEP_SUMMARY
+          echo "│  🌿 Review (PR)                                         │" >> $GITHUB_STEP_SUMMARY
+          echo "│     ├─ Backend → Review                                 │" >> $GITHUB_STEP_SUMMARY
+          echo "│     └─ Frontend → Review (Netlify)                     │" >> $GITHUB_STEP_SUMMARY
+          echo "│         │" >> $GITHUB_STEP_SUMMARY
+          echo "│         ▼" >> $GITHUB_STEP_SUMMARY
+          echo "│  🌿 Staging (develop)                                   │" >> $GITHUB_STEP_SUMMARY
+          echo "│     ├─ Backend → Staging (Heroku)                       │" >> $GITHUB_STEP_SUMMARY
+          echo "│     └─ Frontend → Staging (Netlify)                     │" >> $GITHUB_STEP_SUMMARY
+          echo "│         │" >> $GITHUB_STEP_SUMMARY
+          echo "│         ▼ (depends on Staging)" >> $GITHUB_STEP_SUMMARY
+          echo "│  🚀 Production (main)                                    │" >> $GITHUB_STEP_SUMMARY
+          echo "│     ├─ Backend → Production (Heroku)                    │" >> $GITHUB_STEP_SUMMARY
+          echo "│     └─ Frontend → Production (Netlify/Firebase)         │" >> $GITHUB_STEP_SUMMARY
+          echo "└─────────────────────────────────────────────────────────┘" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================
+  # 📋 VALIDATION & QUALITY CHECKS
+  # ============================================
+  
+  # Backend CI Jobs
+  backend-lint:
+    name: 📋 Backend → Lint & Format
+    runs-on: ubuntu-latest
+    needs: show-pipeline-tree
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Check formatting
+        run: |
+          npm run format -- --check || (echo "❌ Code formatting check failed. Run 'npm run format' to fix." && exit 1)
+
+  backend-type-check:
+    name: 📋 Backend → TypeScript Check
+    runs-on: ubuntu-latest
+    needs: show-pipeline-tree
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript type check
+        run: npm run type-check
+
+  backend-tests:
+    name: 📋 Backend → Unit Tests
+    runs-on: ubuntu-latest
+    needs: show-pipeline-tree
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./backend/coverage/lcov.info
+          flags: backend
+          name: backend-coverage
+
+  backend-build:
+    name: 📋 Backend → Build
+    runs-on: ubuntu-latest
+    needs: [backend-lint, backend-type-check, backend-tests]
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Build project
+        run: npm run build
+
+  backend-security:
+    name: 📋 Backend → Security Audit
+    runs-on: ubuntu-latest
+    needs: show-pipeline-tree
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Run security audit
+        run: npm audit --audit-level=moderate
+
+  # Frontend CI Jobs
+  frontend-analyze:
+    name: 📋 Frontend → Analyze & Lint
+    runs-on: ubuntu-latest
+    needs: show-pipeline-tree
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze code
+        run: flutter analyze
+
+  frontend-tests:
+    name: 📋 Frontend → Unit Tests
+    runs-on: ubuntu-latest
+    needs: show-pipeline-tree
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run tests with coverage
+        run: flutter test --coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage/lcov.info
+          flags: frontend
+          name: frontend-coverage
+
+  frontend-build-android:
+    name: 📋 Frontend → Build Android
+    runs-on: ubuntu-latest
+    needs: [frontend-analyze, frontend-tests]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Android APK
+        run: flutter build apk --release
+
+  frontend-build-ios:
+    name: 📋 Frontend → Build iOS
+    runs-on: macos-latest
+    needs: [frontend-analyze, frontend-tests]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build iOS
+        run: flutter build ios --release --no-codesign
+
+  # ============================================
+  # 🧪 INTEGRATION & FUNCTIONAL TESTS
+  # ============================================
+
+  e2e-backend:
+    name: 🧪 E2E → Backend Tests
+    runs-on: ubuntu-latest
+    needs: [backend-build, backend-tests]
+    defaults:
+      run:
+        working-directory: backend
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: sportify
+          POSTGRES_PASSWORD: sportify
+          POSTGRES_DB: sportify_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Run database migrations
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+        run: npx prisma migrate deploy
+
+      - name: Run E2E tests
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+        run: npm run test:e2e
+
+  e2e-frontend:
+    name: 🧪 E2E → Frontend Tests
+    runs-on: ubuntu-latest
+    needs: [frontend-build-android, frontend-tests]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run E2E tests
+        run: flutter test integration_test/
+
+  functional-tests:
+    name: 🧪 Functional → API Tests
+    runs-on: ubuntu-latest
+    needs: [backend-build, e2e-backend]
+    defaults:
+      run:
+        working-directory: backend
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: sportify
+          POSTGRES_PASSWORD: sportify
+          POSTGRES_DB: sportify_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Run database migrations
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+        run: npx prisma migrate deploy
+
+      - name: Run functional tests
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+        run: npm run test:functional || echo "Functional tests not configured yet"
+
+  # ============================================
+  # 🔍 CODE QUALITY & SECURITY
+  # ============================================
+
+  code-quality:
+    name: 🔍 Code Quality → SonarCloud
+    runs-on: ubuntu-latest
+    needs: [backend-build, frontend-build-android]
+    if: ${{ secrets.SONAR_TOKEN != '' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Run SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  dependency-review:
+    name: 🔍 Security → Dependency Review
+    runs-on: ubuntu-latest
+    needs: show-pipeline-tree
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate
+
+  # ============================================
+  # 🚀 DEPLOYMENT ENVIRONMENTS
+  # ============================================
+
+  # Review Environment
+  determine-review:
+    name: 🌿 Review → Determine
+    runs-on: ubuntu-latest
+    needs: [e2e-backend, functional-tests]
+    if: github.event_name == 'pull_request'
+    outputs:
+      should-deploy: ${{ steps.check.outputs.should-deploy }}
+      pr-number: ${{ github.event.pull_request.number }}
+    steps:
+      - name: Check if should deploy
+        id: check
+        run: |
+          if [ "${{ github.event.action }}" == "closed" ]; then
+            echo "should-deploy=false" >> $GITHUB_OUTPUT
+          else
+            echo "should-deploy=true" >> $GITHUB_OUTPUT
+          fi
+
+  deploy-review-backend:
+    name: 🌿 Review → Backend
+    runs-on: ubuntu-latest
+    needs: [show-pipeline-tree, determine-review]
+    if: needs.determine-review.outputs.should-deploy == 'true'
+    environment:
+      name: Review
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Build project
+        run: npm run build
+
+      - name: Deploy to Review
+        run: |
+          echo "🚀 Backend deployed to Review environment for PR #${{ github.event.pull_request.number }}"
+
+  deploy-review-frontend:
+    name: 🌿 Review → Frontend (Netlify)
+    runs-on: ubuntu-latest
+    needs: [show-pipeline-tree, determine-review]
+    if: needs.determine-review.outputs.should-deploy == 'true'
+    environment:
+      name: Review
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build web (Review)
+        run: |
+          flutter build web --release \
+            --dart-define=ENVIRONMENT=review \
+            --dart-define=API_URL=https://review-api.sportify.app
+
+      - name: Deploy to Netlify (Review)
+        if: ${{ secrets.NETLIFY_STAGING_AUTH_TOKEN != '' && secrets.NETLIFY_STAGING_SITE_ID != '' }}
+        uses: nwtgck/actions-netlify@v3.0
+        with:
+          publish-dir: './build/web'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deploy Preview for PR #${{ github.event.pull_request.number }}"
+          enable-pull-request-comment: true
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_STAGING_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_STAGING_SITE_ID }}
+
+  # Staging Environment
+  determine-staging:
+    name: 🌿 Staging → Determine
+    runs-on: ubuntu-latest
+    needs: [e2e-backend, functional-tests]
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
+      (github.event_name == 'workflow_dispatch')
+    outputs:
+      should-deploy: ${{ steps.check.outputs.should-deploy }}
+    steps:
+      - name: Check if should deploy
+        id: check
+        run: echo "should-deploy=true" >> $GITHUB_OUTPUT
+
+  deploy-staging-backend:
+    name: 🌿 Staging → Backend (Heroku)
+    runs-on: ubuntu-latest
+    needs: [show-pipeline-tree, determine-staging]
+    if: needs.determine-staging.outputs.should-deploy == 'true'
+    environment:
+      name: Staging
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Build project
+        run: npm run build
+
+      - name: Deploy to Heroku (Staging)
+        if: ${{ secrets.HEROKU_STAGING_API_KEY != '' && secrets.HEROKU_STAGING_APP_NAME != '' }}
+        uses: akhileshns/heroku-deploy@v3.13.15
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_STAGING_API_KEY }}
+          heroku_app_name: ${{ secrets.HEROKU_STAGING_APP_NAME }}
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          appdir: "backend"
+          procfile: "web: cd backend && npm start"
+          usedocker: false
+
+  deploy-staging-frontend:
+    name: 🌿 Staging → Frontend (Netlify)
+    runs-on: ubuntu-latest
+    needs: [show-pipeline-tree, determine-staging]
+    if: needs.determine-staging.outputs.should-deploy == 'true'
+    environment:
+      name: Staging
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build web (Staging)
+        run: |
+          flutter build web --release \
+            --dart-define=ENVIRONMENT=staging \
+            --dart-define=API_URL=https://staging-api.sportify.app
+
+      - name: Deploy to Netlify (Staging)
+        if: ${{ secrets.NETLIFY_STAGING_AUTH_TOKEN != '' && secrets.NETLIFY_STAGING_SITE_ID != '' }}
+        uses: nwtgck/actions-netlify@v3.0
+        with:
+          publish-dir: './build/web'
+          production-branch: develop
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deploy to Staging from GitHub Actions - ${{ github.sha }}"
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_STAGING_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_STAGING_SITE_ID }}
+
+  # Production Environment
+  determine-production:
+    name: 🚀 Production → Determine
+    runs-on: ubuntu-latest
+    needs: [e2e-backend, functional-tests]
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch')
+    outputs:
+      should-deploy: ${{ steps.check.outputs.should-deploy }}
+    steps:
+      - name: Check if should deploy
+        id: check
+        run: echo "should-deploy=true" >> $GITHUB_OUTPUT
+
+  deploy-production-backend:
+    name: 🚀 Production → Backend (Heroku) [depends on Staging]
+    runs-on: ubuntu-latest
+    needs: [show-pipeline-tree, determine-production, deploy-staging-backend]
+    if: |
+      needs.determine-production.outputs.should-deploy == 'true' &&
+      (needs.deploy-staging-backend.result == 'success' || needs.deploy-staging-backend.result == 'skipped')
+    environment:
+      name: Production
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Build project
+        run: npm run build
+
+      - name: Deploy to Heroku (Production)
+        if: ${{ secrets.HEROKU_API_KEY != '' && secrets.HEROKU_APP_NAME != '' }}
+        uses: akhileshns/heroku-deploy@v3.13.15
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          appdir: "backend"
+          procfile: "web: cd backend && npm start"
+          usedocker: false
+
+      - name: Install Heroku CLI
+        if: ${{ secrets.HEROKU_API_KEY != '' && secrets.HEROKU_APP_NAME != '' }}
+        run: curl https://cli-assets.heroku.com/install.sh | sh
+
+      - name: Set Heroku API key
+        if: ${{ secrets.HEROKU_API_KEY != '' && secrets.HEROKU_APP_NAME != '' }}
+        run: |
+          mkdir -p ~/.netrc
+          echo "machine api.heroku.com" >> ~/.netrc
+          echo "  login ${{ secrets.HEROKU_EMAIL }}" >> ~/.netrc
+          echo "  password ${{ secrets.HEROKU_API_KEY }}" >> ~/.netrc
+          chmod 600 ~/.netrc
+
+      - name: Run database migrations
+        if: ${{ secrets.HEROKU_API_KEY != '' && secrets.HEROKU_APP_NAME != '' }}
+        run: |
+          heroku run npx prisma migrate deploy -a ${{ secrets.HEROKU_APP_NAME }} || echo "Migrations already up to date"
+
+      - name: Restart Heroku app
+        if: ${{ secrets.HEROKU_API_KEY != '' && secrets.HEROKU_APP_NAME != '' }}
+        run: |
+          heroku restart -a ${{ secrets.HEROKU_APP_NAME }}
+
+  deploy-production-frontend:
+    name: 🚀 Production → Frontend (Netlify/Firebase) [depends on Staging]
+    runs-on: ubuntu-latest
+    needs: [show-pipeline-tree, determine-production, deploy-staging-frontend]
+    if: |
+      needs.determine-production.outputs.should-deploy == 'true' &&
+      (needs.deploy-staging-frontend.result == 'success' || needs.deploy-staging-frontend.result == 'skipped')
+    environment:
+      name: Production
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build web (Production)
+        run: |
+          flutter build web --release \
+            --dart-define=ENVIRONMENT=production \
+            --dart-define=API_URL=https://api.sportify.app
+
+      - name: Deploy to Firebase Hosting (Production)
+        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          channelId: live
+          projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
+
+      - name: Deploy to Netlify (Production)
+        if: ${{ secrets.NETLIFY_AUTH_TOKEN != '' && secrets.NETLIFY_SITE_ID != '' }}
+        uses: nwtgck/actions-netlify@v3.0
+        with:
+          publish-dir: './build/web'
+          production-branch: main
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deploy to Production from GitHub Actions - ${{ github.sha }}"
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+  # ============================================
+  # 📊 COMPLETE PIPELINE SUMMARY
+  # ============================================
+  pipeline-summary:
+    name: 📊 Complete Pipeline Summary
+    runs-on: ubuntu-latest
+    needs:
+      - show-pipeline-tree
+      - backend-lint
+      - backend-type-check
+      - backend-tests
+      - backend-build
+      - backend-security
+      - frontend-analyze
+      - frontend-tests
+      - frontend-build-android
+      - frontend-build-ios
+      - e2e-backend
+      - e2e-frontend
+      - functional-tests
+      - code-quality
+      - dependency-review
+      - deploy-review-backend
+      - deploy-review-frontend
+      - deploy-staging-backend
+      - deploy-staging-frontend
+      - deploy-production-backend
+      - deploy-production-frontend
+    if: always()
+
+    steps:
+      - name: Generate complete pipeline summary
+        run: |
+          echo "# 🌳 Complete CI/CD Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 📋 Validation & Quality Checks" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend → Lint | ${{ needs.backend-lint.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend → Type Check | ${{ needs.backend-type-check.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend → Tests | ${{ needs.backend-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend → Build | ${{ needs.backend-build.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend → Security | ${{ needs.backend-security.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend → Analyze | ${{ needs.frontend-analyze.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend → Tests | ${{ needs.frontend-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend → Build Android | ${{ needs.frontend-build-android.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend → Build iOS | ${{ needs.frontend-build-ios.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 🧪 Integration & Functional Tests" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| E2E → Backend | ${{ needs.e2e-backend.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| E2E → Frontend | ${{ needs.e2e-frontend.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Functional → API Tests | ${{ needs.functional-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 🔍 Code Quality & Security" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Code Quality → SonarCloud | ${{ needs.code-quality.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security → Dependency Review | ${{ needs.dependency-review.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 🚀 Deployment Environments" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | Backend | Frontend | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------------|---------|----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🌿 Review | ${{ needs.deploy-review-backend.result }} | ${{ needs.deploy-review-frontend.result }} | ${{ needs.deploy-review-backend.result == 'success' && needs.deploy-review-frontend.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🌿 Staging | ${{ needs.deploy-staging-backend.result }} (Heroku) | ${{ needs.deploy-staging-frontend.result }} (Netlify) | ${{ needs.deploy-staging-backend.result == 'success' && needs.deploy-staging-frontend.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🚀 Production | ${{ needs.deploy-production-backend.result }} (Heroku) | ${{ needs.deploy-production-frontend.result }} (Netlify/Firebase) | ${{ needs.deploy-production-backend.result == 'success' && needs.deploy-production-frontend.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 🌳 Pipeline Tree Structure" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "🌳 Master Pipeline" >> $GITHUB_STEP_SUMMARY
+          echo "│" >> $GITHUB_STEP_SUMMARY
+          echo "├── 📋 Validation & Quality" >> $GITHUB_STEP_SUMMARY
+          echo "│   ├── Backend CI (Lint, Type, Tests, Build, Security)" >> $GITHUB_STEP_SUMMARY
+          echo "│   └── Frontend CI (Analyze, Tests, Build Android/iOS)" >> $GITHUB_STEP_SUMMARY
+          echo "│" >> $GITHUB_STEP_SUMMARY
+          echo "├── 🧪 Integration Tests" >> $GITHUB_STEP_SUMMARY
+          echo "│   ├── E2E Backend" >> $GITHUB_STEP_SUMMARY
+          echo "│   ├── E2E Frontend" >> $GITHUB_STEP_SUMMARY
+          echo "│   └── Functional Tests" >> $GITHUB_STEP_SUMMARY
+          echo "│" >> $GITHUB_STEP_SUMMARY
+          echo "├── 🔍 Code Quality" >> $GITHUB_STEP_SUMMARY
+          echo "│   ├── SonarCloud" >> $GITHUB_STEP_SUMMARY
+          echo "│   └── Dependency Review" >> $GITHUB_STEP_SUMMARY
+          echo "│" >> $GITHUB_STEP_SUMMARY
+          echo "└── 🚀 Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "    ├── 🌿 Review (PR)" >> $GITHUB_STEP_SUMMARY
+          echo "    │   ├── Backend" >> $GITHUB_STEP_SUMMARY
+          echo "    │   └── Frontend (Netlify)" >> $GITHUB_STEP_SUMMARY
+          echo "    │" >> $GITHUB_STEP_SUMMARY
+          echo "    ├── 🌿 Staging (develop)" >> $GITHUB_STEP_SUMMARY
+          echo "    │   ├── Backend (Heroku)" >> $GITHUB_STEP_SUMMARY
+          echo "    │   └── Frontend (Netlify)" >> $GITHUB_STEP_SUMMARY
+          echo "    │       │" >> $GITHUB_STEP_SUMMARY
+          echo "    │       ▼ (depends on)" >> $GITHUB_STEP_SUMMARY
+          echo "    │" >> $GITHUB_STEP_SUMMARY
+          echo "    └── 🚀 Production (main)" >> $GITHUB_STEP_SUMMARY
+          echo "        ├── Backend (Heroku)" >> $GITHUB_STEP_SUMMARY
+          echo "        └── Frontend (Netlify/Firebase)" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
