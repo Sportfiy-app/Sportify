@@ -25,10 +25,58 @@ env:
 
 jobs:
   # ============================================
-  # REVIEW ENVIRONMENT (PR Preview)
+  # 🌳 DEPLOYMENT TREE VISUALIZATION
+  # ============================================
+  show-deployment-tree:
+    name: 🌳 Deployment Tree Structure
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Display Deployment Tree
+        run: |
+          echo "# 🌳 Deployment Tree Structure" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "┌─────────────────────────────────────────┐" >> $GITHUB_STEP_SUMMARY
+          echo "│         Pull Request                    │" >> $GITHUB_STEP_SUMMARY
+          echo "│         🌿 Review Environment          │" >> $GITHUB_STEP_SUMMARY
+          echo "├─────────────────────────────────────────┤" >> $GITHUB_STEP_SUMMARY
+          echo "│  ┌─────────────┐    ┌─────────────┐   │" >> $GITHUB_STEP_SUMMARY
+          echo "│  │   Backend   │    │  Frontend    │   │" >> $GITHUB_STEP_SUMMARY
+          echo "│  │   Review    │    │   Review     │   │" >> $GITHUB_STEP_SUMMARY
+          echo "│  └─────────────┘    └─────────────┘   │" >> $GITHUB_STEP_SUMMARY
+          echo "└─────────────────────────────────────────┘" >> $GITHUB_STEP_SUMMARY
+          echo "              │" >> $GITHUB_STEP_SUMMARY
+          echo "              ▼" >> $GITHUB_STEP_SUMMARY
+          echo "┌─────────────────────────────────────────┐" >> $GITHUB_STEP_SUMMARY
+          echo "│      Push to develop                     │" >> $GITHUB_STEP_SUMMARY
+          echo "│      🌿 Staging Environment              │" >> $GITHUB_STEP_SUMMARY
+          echo "├─────────────────────────────────────────┤" >> $GITHUB_STEP_SUMMARY
+          echo "│  ┌─────────────┐    ┌─────────────┐   │" >> $GITHUB_STEP_SUMMARY
+          echo "│  │   Backend   │    │  Frontend    │   │" >> $GITHUB_STEP_SUMMARY
+          echo "│  │   Staging   │    │   Staging    │   │" >> $GITHUB_STEP_SUMMARY
+          echo "│  │  (Heroku)   │    │  (Netlify)   │   │" >> $GITHUB_STEP_SUMMARY
+          echo "│  └─────────────┘    └─────────────┘   │" >> $GITHUB_STEP_SUMMARY
+          echo "└─────────────────────────────────────────┘" >> $GITHUB_STEP_SUMMARY
+          echo "              │" >> $GITHUB_STEP_SUMMARY
+          echo "              ▼ (depends on Staging)" >> $GITHUB_STEP_SUMMARY
+          echo "┌─────────────────────────────────────────┐" >> $GITHUB_STEP_SUMMARY
+          echo "│      Push to main                       │" >> $GITHUB_STEP_SUMMARY
+          echo "│      🚀 Production Environment          │" >> $GITHUB_STEP_SUMMARY
+          echo "├─────────────────────────────────────────┤" >> $GITHUB_STEP_SUMMARY
+          echo "│  ┌─────────────┐    ┌─────────────┐   │" >> $GITHUB_STEP_SUMMARY
+          echo "│  │   Backend   │    │  Frontend    │   │" >> $GITHUB_STEP_SUMMARY
+          echo "│  │ Production  │    │  Production  │   │" >> $GITHUB_STEP_SUMMARY
+          echo "│  │  (Heroku)   │    │  (Firebase)  │   │" >> $GITHUB_STEP_SUMMARY
+          echo "│  └─────────────┘    └─────────────┘   │" >> $GITHUB_STEP_SUMMARY
+          echo "└─────────────────────────────────────────┘" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================
+  # 🌿 REVIEW ENVIRONMENT (PR Preview)
   # ============================================
   determine-review-environment:
-    name: Determine Review Environment
+    name: 🌿 Review → Determine
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     outputs:
@@ -46,9 +94,9 @@ jobs:
           fi
 
   deploy-backend-review:
-    name: Deploy Backend to Review
+    name: 🌿 Review → Backend
     runs-on: ubuntu-latest
-    needs: determine-review-environment
+    needs: [show-deployment-tree, determine-review-environment]
     if: needs.determine-review-environment.outputs.should-deploy == 'true'
     environment:
       name: Review
@@ -103,9 +151,9 @@ jobs:
             });
 
   deploy-frontend-review:
-    name: Deploy Frontend to Review
+    name: 🌿 Review → Frontend
     runs-on: ubuntu-latest
-    needs: determine-review-environment
+    needs: [show-deployment-tree, determine-review-environment]
     if: needs.determine-review-environment.outputs.should-deploy == 'true'
     environment:
       name: Review
@@ -152,10 +200,10 @@ jobs:
             });
 
   # ============================================
-  # STAGING ENVIRONMENT (Development)
+  # 🌿 STAGING ENVIRONMENT (Development)
   # ============================================
   determine-staging-environment:
-    name: Determine Staging Environment
+    name: 🌿 Staging → Determine
     runs-on: ubuntu-latest
     if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
@@ -169,9 +217,9 @@ jobs:
         run: echo "should-deploy=true" >> $GITHUB_OUTPUT
 
   deploy-backend-staging:
-    name: Deploy Backend to Staging
+    name: 🌿 Staging → Backend (Heroku)
     runs-on: ubuntu-latest
-    needs: determine-staging-environment
+    needs: [show-deployment-tree, determine-staging-environment]
     if: needs.determine-staging-environment.outputs.should-deploy == 'true'
     environment:
       name: Staging
@@ -228,9 +276,9 @@ jobs:
         run: npx prisma migrate deploy
 
   deploy-frontend-staging:
-    name: Deploy Frontend to Staging
+    name: 🌿 Staging → Frontend (Netlify)
     runs-on: ubuntu-latest
-    needs: determine-staging-environment
+    needs: [show-deployment-tree, determine-staging-environment]
     if: needs.determine-staging-environment.outputs.should-deploy == 'true'
     environment:
       name: Staging
@@ -278,10 +326,10 @@ jobs:
           projectId: ${{ secrets.FIREBASE_STAGING_PROJECT_ID }}
 
   # ============================================
-  # PRODUCTION ENVIRONMENT (Main Branch)
+  # 🚀 PRODUCTION ENVIRONMENT (Main Branch)
   # ============================================
   determine-production-environment:
-    name: Determine Production Environment
+    name: 🚀 Production → Determine
     runs-on: ubuntu-latest
     if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
@@ -296,9 +344,9 @@ jobs:
 
   # Production depends on Staging being successful
   deploy-backend-production:
-    name: Deploy Backend to Production
+    name: 🚀 Production → Backend (Heroku) [depends on Staging]
     runs-on: ubuntu-latest
-    needs: [determine-production-environment, deploy-backend-staging]
+    needs: [show-deployment-tree, determine-production-environment, deploy-backend-staging]
     if: |
       needs.determine-production-environment.outputs.should-deploy == 'true' &&
       (needs.deploy-backend-staging.result == 'success' || needs.deploy-backend-staging.result == 'skipped')
@@ -381,9 +429,9 @@ jobs:
         run: npx prisma migrate deploy
 
   deploy-frontend-production:
-    name: Deploy Frontend to Production
+    name: 🚀 Production → Frontend (Firebase) [depends on Staging]
     runs-on: ubuntu-latest
-    needs: [determine-production-environment, deploy-frontend-staging]
+    needs: [show-deployment-tree, determine-production-environment, deploy-frontend-staging]
     if: |
       needs.determine-production-environment.outputs.should-deploy == 'true' &&
       (needs.deploy-frontend-staging.result == 'success' || needs.deploy-frontend-staging.result == 'skipped')
@@ -434,12 +482,13 @@ jobs:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
 
   # ============================================
-  # DEPLOYMENT SUMMARY
+  # 📊 DEPLOYMENT SUMMARY
   # ============================================
   deployment-summary:
-    name: Deployment Summary
+    name: 📊 Deployment Summary & Tree
     runs-on: ubuntu-latest
     needs:
+      - show-deployment-tree
       - deploy-backend-review
       - deploy-frontend-review
       - deploy-backend-staging
@@ -451,29 +500,37 @@ jobs:
     steps:
       - name: Generate deployment summary
         run: |
-          echo "# 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "# 🚀 Deployment Summary & Tree Structure" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## Environment Status" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 Environment Status" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Environment | Backend | Frontend | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|-------------|---------|----------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| **Review** | ${{ needs.deploy-backend-review.result }} | ${{ needs.deploy-frontend-review.result }} | ${{ needs.deploy-backend-review.result == 'success' && needs.deploy-frontend-review.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Staging** | ${{ needs.deploy-backend-staging.result }} | ${{ needs.deploy-frontend-staging.result }} | ${{ needs.deploy-backend-staging.result == 'success' && needs.deploy-frontend-staging.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Production** | ${{ needs.deploy-backend-production.result }} | ${{ needs.deploy-frontend-production.result }} | ${{ needs.deploy-backend-production.result == 'success' && needs.deploy-frontend-production.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | Backend (Platform) | Frontend (Platform) | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------------|-------------------|---------------------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **🌿 Review** | ${{ needs.deploy-backend-review.result }} | ${{ needs.deploy-frontend-review.result }} | ${{ needs.deploy-backend-review.result == 'success' && needs.deploy-frontend-review.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **🌿 Staging** | ${{ needs.deploy-backend-staging.result }} (Heroku) | ${{ needs.deploy-frontend-staging.result }} (Netlify) | ${{ needs.deploy-backend-staging.result == 'success' && needs.deploy-frontend-staging.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **🚀 Production** | ${{ needs.deploy-backend-production.result }} (Heroku) | ${{ needs.deploy-frontend-production.result }} (Firebase) | ${{ needs.deploy-backend-production.result == 'success' && needs.deploy-frontend-production.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## Deployment Tree" >> $GITHUB_STEP_SUMMARY
+          echo "## 🌳 Deployment Tree with Dependencies" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          echo "Review (PR)" >> $GITHUB_STEP_SUMMARY
-          echo "    ├── Backend" >> $GITHUB_STEP_SUMMARY
-          echo "    └── Frontend" >> $GITHUB_STEP_SUMMARY
+          echo "🌿 Review Environment (Pull Request)" >> $GITHUB_STEP_SUMMARY
+          echo "    ├── 🌿 Review → Backend" >> $GITHUB_STEP_SUMMARY
+          echo "    └── 🌿 Review → Frontend" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Staging (develop)" >> $GITHUB_STEP_SUMMARY
-          echo "    ├── Backend" >> $GITHUB_STEP_SUMMARY
-          echo "    └── Frontend" >> $GITHUB_STEP_SUMMARY
+          echo "🌿 Staging Environment (develop branch)" >> $GITHUB_STEP_SUMMARY
+          echo "    ├── 🌿 Staging → Backend (Heroku)" >> $GITHUB_STEP_SUMMARY
+          echo "    └── 🌿 Staging → Frontend (Netlify)" >> $GITHUB_STEP_SUMMARY
+          echo "         │" >> $GITHUB_STEP_SUMMARY
+          echo "         ▼ (Production depends on Staging)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Production (main)" >> $GITHUB_STEP_SUMMARY
-          echo "    ├── Backend (depends on Staging)" >> $GITHUB_STEP_SUMMARY
-          echo "    └── Frontend (depends on Staging)" >> $GITHUB_STEP_SUMMARY
+          echo "🚀 Production Environment (main branch)" >> $GITHUB_STEP_SUMMARY
+          echo "    ├── 🚀 Production → Backend (Heroku) [depends on Staging]" >> $GITHUB_STEP_SUMMARY
+          echo "    └── 🚀 Production → Frontend (Firebase) [depends on Staging]" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 🔗 Deployment Platforms" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Backend Staging/Production**: Heroku" >> $GITHUB_STEP_SUMMARY
+          echo "- **Frontend Staging**: Netlify" >> $GITHUB_STEP_SUMMARY
+          echo "- **Frontend Production**: Firebase Hosting" >> $GITHUB_STEP_SUMMARY
 
