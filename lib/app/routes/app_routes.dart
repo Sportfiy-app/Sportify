@@ -43,6 +43,7 @@ class Routes {
   static const mapVenues = '/map/venues';
   static const chatConversations = '/chat/conversations';
   static const chatDetail = '/chat/detail';
+  static const friendRequests = '/friends/requests';
   static const notifications = '/notifications';
   static const profile = '/profile';
   static const profileAnnonces = '/profile/annonces';

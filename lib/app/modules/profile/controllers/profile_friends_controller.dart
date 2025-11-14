@@ -2,16 +2,26 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter/foundation.dart';
 
+import '../../../data/api/api_exception.dart';
+import '../../../data/friends/friends_repository.dart';
+import '../../../data/friends/models/friend_model.dart';
 import '../../../routes/app_routes.dart';
 
 class ProfileFriendsController extends GetxController {
+  ProfileFriendsController(this._friendsRepository);
+
+  final FriendsRepository _friendsRepository;
+
   final TextEditingController searchController = TextEditingController();
 
   final RxString searchQuery = ''.obs;
   final RxString activeFilter = 'Tous'.obs;
   final RxnString selectedInitial = RxnString();
   final RxList<FriendItem> _friends = <FriendItem>[].obs;
+  final RxBool isLoading = false.obs;
+  final RxString? errorMessage = RxString(null);
 
   final List<String> filterOptions = const [
     'Tous',
@@ -26,7 +36,44 @@ class ProfileFriendsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _friends.assignAll(_generateFriends());
+    loadFriends();
+  }
+
+  Future<void> loadFriends() async {
+    isLoading.value = true;
+    errorMessage.value = null;
+    try {
+      final response = await _friendsRepository.getFriends(status: 'ACCEPTED');
+      _friends.assignAll(response.friends.map((friend) => _convertFriendToItem(friend)).toList());
+    } on ApiException catch (e) {
+      errorMessage.value = e.message;
+      if (kDebugMode) {
+        debugPrint('Error loading friends: ${e.message}');
+      }
+      // Fallback to mock data on error for now
+      _friends.assignAll(_generateFriends());
+    } catch (e) {
+      errorMessage.value = 'Une erreur inattendue est survenue';
+      if (kDebugMode) {
+        debugPrint('Error loading friends: $e');
+      }
+      // Fallback to mock data on error for now
+      _friends.assignAll(_generateFriends());
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  FriendItem _convertFriendToItem(FriendModel friend) {
+    return FriendItem(
+      id: friend.id,
+      name: friend.fullName,
+      avatarUrl: friend.avatarUrl ?? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=60',
+      distanceKm: 0.0, // TODO: Calculate distance if location data available
+      isOnline: false, // TODO: Implement online status
+      lastActive: friend.createdAt,
+      favoriteSports: [], // TODO: Get from user sports
+    );
   }
 
   @override
@@ -78,9 +125,25 @@ class ProfileFriendsController extends GetxController {
     }
   }
 
-  void removeFriend(FriendItem friend) {
-    _friends.removeWhere((item) => item.id == friend.id);
-    Get.snackbar('Ami supprimé', '${friend.name} a été retiré de votre liste.');
+  Future<void> removeFriend(FriendItem friend) async {
+    try {
+      // Get friendship status to find the friendshipId
+      final status = await _friendsRepository.getFriendshipStatus(friend.id);
+      if (status['friendshipId'] != null) {
+        await _friendsRepository.removeFriend(status['friendshipId'] as String);
+        _friends.removeWhere((item) => item.id == friend.id);
+        Get.snackbar('Ami supprimé', '${friend.name} a été retiré de votre liste.');
+      } else {
+        Get.snackbar('Erreur', 'Impossible de trouver la relation d\'amitié');
+      }
+    } on ApiException catch (e) {
+      Get.snackbar('Erreur', 'Impossible de supprimer l\'ami: ${e.message}');
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Error removing friend: $e');
+      }
+      Get.snackbar('Erreur', 'Impossible de supprimer l\'ami');
+    }
   }
 
   void openFriend(FriendItem friend) {

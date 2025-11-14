@@ -1,8 +1,20 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter/foundation.dart';
+
+import '../../../data/api/api_exception.dart';
+import '../../../data/friends/friends_repository.dart';
+import '../../../data/messages/messages_repository.dart';
+import '../../../data/users/users_repository.dart';
+import '../../../routes/app_routes.dart';
 
 class FindPartnerController extends GetxController {
+  FindPartnerController(this._friendsRepository, this._messagesRepository, this._usersRepository);
+
+  final FriendsRepository _friendsRepository;
+  final MessagesRepository _messagesRepository;
+  final UsersRepository _usersRepository;
   final Rx<UserActionFeedback?> userActionFeedback = Rx<UserActionFeedback?>(null);
   final PartnerProfile profile = const PartnerProfile(
     name: 'Esam SHARFELDIN',
@@ -1156,18 +1168,108 @@ class FindPartnerController extends GetxController {
   ];
 
   final RxBool hasSentRequest = false.obs;
+  final RxBool isLoadingRequest = false.obs;
+  final RxString? currentUserId = RxString(null);
+  String? _profileUserId;
 
-  void toggleRequest() {
-    hasSentRequest.toggle();
-    if (hasSentRequest.value) {
-      Get.snackbar('Demande envoyée', 'Votre demande d\'accès a été envoyée.');
-    } else {
-      Get.snackbar('Demande annulée', 'La demande d\'accès a été annulée.');
+  @override
+  void onInit() {
+    super.onInit();
+    _loadCurrentUserId();
+    _checkFriendshipStatus();
+  }
+
+  Future<void> _loadCurrentUserId() async {
+    try {
+      final user = await _usersRepository.getCurrentUser();
+      currentUserId.value = user.id;
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Error loading current user: $e');
+      }
     }
   }
 
-  void openDirectMessage(String name) {
-    Get.snackbar('Messages', 'Ouverture de la conversation avec $name');
+  Future<void> _checkFriendshipStatus() async {
+    // Get profile user ID from arguments if available
+    final args = Get.arguments;
+    if (args is String) {
+      _profileUserId = args;
+    } else if (args is Map<String, dynamic> && args['userId'] != null) {
+      _profileUserId = args['userId'] as String;
+    }
+
+    if (_profileUserId == null || currentUserId.value == null) return;
+
+    try {
+      final status = await _friendsRepository.getFriendshipStatus(_profileUserId!);
+      if (status['status'] == 'PENDING') {
+        hasSentRequest.value = true;
+      } else if (status['status'] == 'ACCEPTED') {
+        hasSentRequest.value = false; // Already friends, show different UI
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Error checking friendship status: $e');
+      }
+    }
+  }
+
+  Future<void> toggleRequest() async {
+    if (_profileUserId == null || currentUserId.value == null) {
+      Get.snackbar('Erreur', 'Impossible d\'envoyer la demande');
+      return;
+    }
+
+    if (hasSentRequest.value) {
+      // Cancel request - would need to implement cancel endpoint
+      Get.snackbar('Information', 'Annulation de demande à venir');
+      return;
+    }
+
+    isLoadingRequest.value = true;
+    try {
+      await _friendsRepository.sendFriendRequest(_profileUserId!);
+      hasSentRequest.value = true;
+      Get.snackbar('Demande envoyée', 'Votre demande d\'ami a été envoyée.');
+    } on ApiException catch (e) {
+      Get.snackbar('Erreur', e.message);
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Error sending friend request: $e');
+      }
+      Get.snackbar('Erreur', 'Impossible d\'envoyer la demande');
+    } finally {
+      isLoadingRequest.value = false;
+    }
+  }
+
+  Future<void> openDirectMessage(String name) async {
+    if (_profileUserId == null) {
+      Get.snackbar('Erreur', 'Impossible d\'ouvrir la conversation');
+      return;
+    }
+
+    try {
+      // Get user info for chat header
+      final user = await _usersRepository.getCurrentUser();
+      // For now, we'll use the profile name and a default avatar
+      // In a real scenario, you'd fetch the other user's profile
+      Get.toNamed(Routes.chatDetail, arguments: {
+        'userId': _profileUserId,
+        'userName': name,
+        'userAvatar': profile.avatarUrl,
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Error opening chat: $e');
+      }
+      Get.snackbar('Erreur', 'Impossible d\'ouvrir la conversation');
+    }
+  }
+
+  Future<void> sendProfileMessage() async {
+    await openDirectMessage(profile.name);
   }
 
   void openSearch() {

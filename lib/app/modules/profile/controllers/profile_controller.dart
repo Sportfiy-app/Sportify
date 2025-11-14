@@ -157,9 +157,10 @@ class ProfileController extends GetxController {
       route: Routes.profileSavedAnnouncements,
     ),
     QuickAction(
-      icon: SportIcon.eye,
-      title: 'Profil public',
-      subtitle: 'Voir comme les autres',
+      icon: Icons.person_add_alt_1_rounded,
+      title: 'Demandes d\'amis',
+      subtitle: 'Gérer vos demandes',
+      route: Routes.friendRequests,
     ),
     QuickAction(
       icon: SportIcon.chart,

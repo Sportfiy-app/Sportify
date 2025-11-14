@@ -1,13 +1,13 @@
 import 'package:get/get.dart';
 
 import '../../../data/friends/friends_repository.dart';
-import '../controllers/profile_friends_controller.dart';
+import '../controllers/friend_requests_controller.dart';
 
-class ProfileFriendsBinding extends Bindings {
+class FriendRequestsBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<ProfileFriendsController>(
-      () => ProfileFriendsController(
+    Get.lazyPut<FriendRequestsController>(
+      () => FriendRequestsController(
         Get.find<FriendsRepository>(),
       ),
     );

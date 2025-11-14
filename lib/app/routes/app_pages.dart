@@ -60,6 +60,8 @@ import '../modules/chat/bindings/chat_detail_binding.dart';
 import '../modules/chat/views/chat_detail_view.dart';
 import '../modules/chat/bindings/chat_conversations_binding.dart';
 import '../modules/chat/views/chat_conversations_view.dart';
+import '../modules/friends/bindings/friend_requests_binding.dart';
+import '../modules/friends/views/friend_requests_view.dart';
 import '../modules/notifications/bindings/notifications_binding.dart';
 import '../modules/notifications/views/notifications_view.dart';
 import '../modules/profile/bindings/profile_binding.dart';
@@ -269,6 +271,11 @@ class AppPages {
       name: Routes.chatDetail,
       page: ChatDetailView.new,
       binding: ChatDetailBinding(),
+    ),
+    GetPage(
+      name: Routes.friendRequests,
+      page: FriendRequestsView.new,
+      binding: FriendRequestsBinding(),
     ),
     GetPage(
       name: Routes.notifications,
