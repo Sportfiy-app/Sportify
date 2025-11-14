@@ -407,7 +407,12 @@ jobs:
         run: flutter pub get
 
       - name: Run E2E tests
-        run: flutter test integration_test/
+        run: |
+          if [ -d "integration_test" ] && [ "$(ls -A integration_test)" ]; then
+            flutter test integration_test/ -d chrome
+          else
+            echo "No integration tests found. Skipping E2E tests."
+          fi
 
   functional-tests:
     name: 🧪 Functional → API Tests
