@@ -48,6 +48,54 @@ Déploie l'application en staging ou production :
 - Push sur `main` (production)
 - Déclenchement manuel avec choix d'environnement
 
+### 4.1. **Deploy Environments** (`deploy-environments.yml`) 🌳
+Workflow de déploiement en arbre avec trois environnements :
+
+#### Structure en arbre :
+```
+Review (PR)
+    ├── Backend
+    └── Frontend
+
+Staging (develop)
+    ├── Backend
+    └── Frontend
+
+Production (main)
+    ├── Backend (dépend de Staging)
+    └── Frontend (dépend de Staging)
+```
+
+#### Environnements :
+
+1. **Review** - Environnement de prévisualisation pour les Pull Requests
+   - Déploiement automatique sur chaque PR
+   - Commentaire automatique avec l'URL de prévisualisation
+   - Nettoyage automatique lors de la fermeture du PR
+
+2. **Staging** - Environnement de développement
+   - Déploiement automatique sur push vers `develop`
+   - Permet de tester les fonctionnalités avant la production
+   - Déclenchement manuel possible
+
+3. **Production** - Environnement de production
+   - Déploiement automatique sur push vers `main`
+   - **Dépend de Staging** : ne se déploie que si Staging est réussi
+   - Migration de base de données automatique
+   - Redémarrage des services après déploiement
+
+**Déclencheurs :**
+- Pull requests → Review
+- Push sur `develop` → Staging
+- Push sur `main` → Production (via Staging)
+- Déclenchement manuel avec choix d'environnement
+
+**Fonctionnalités :**
+- ✅ Déploiement parallèle Backend/Frontend
+- ✅ Résumé de déploiement avec statut de chaque environnement
+- ✅ URLs de déploiement dans les environnements GitHub
+- ✅ Commentaires automatiques sur les PRs
+
 ### 5. **Code Quality** (`code-quality.yml`)
 Vérifications de qualité de code avancées :
 - ✅ SonarCloud Scan
@@ -83,16 +131,25 @@ Configurez ces secrets dans les paramètres GitHub (Settings > Secrets and varia
 
 ### Backend
 - `DATABASE_URL` - URL de la base de données de production
-- `RENDER_DEPLOY_HOOK_URL` - URL du webhook de déploiement Render (optionnel)
-- `HEROKU_API_KEY` - Clé API Heroku (optionnel)
-- `HEROKU_APP_NAME` - Nom de l'application Heroku (optionnel)
+- `STAGING_DATABASE_URL` - URL de la base de données de staging (optionnel)
+- `RENDER_DEPLOY_HOOK_URL` - URL du webhook de déploiement Render Production (optionnel)
+- `RENDER_STAGING_DEPLOY_HOOK_URL` - URL du webhook de déploiement Render Staging (optionnel)
+- `RENDER_PRODUCTION_DEPLOY_HOOK_URL` - URL du webhook de déploiement Render Production (optionnel)
+- `HEROKU_API_KEY` - Clé API Heroku Production (optionnel)
+- `HEROKU_STAGING_API_KEY` - Clé API Heroku Staging (optionnel)
+- `HEROKU_APP_NAME` - Nom de l'application Heroku Production (optionnel)
+- `HEROKU_STAGING_APP_NAME` - Nom de l'application Heroku Staging (optionnel)
 - `HEROKU_EMAIL` - Email du compte Heroku (optionnel)
 
 ### Frontend
-- `FIREBASE_SERVICE_ACCOUNT` - Compte de service Firebase (optionnel)
-- `FIREBASE_PROJECT_ID` - ID du projet Firebase (optionnel)
-- `NETLIFY_AUTH_TOKEN` - Token d'authentification Netlify (optionnel)
-- `NETLIFY_SITE_ID` - ID du site Netlify (optionnel)
+- `FIREBASE_SERVICE_ACCOUNT` - Compte de service Firebase Production (optionnel)
+- `FIREBASE_STAGING_SERVICE_ACCOUNT` - Compte de service Firebase Staging (optionnel)
+- `FIREBASE_PROJECT_ID` - ID du projet Firebase Production (optionnel)
+- `FIREBASE_STAGING_PROJECT_ID` - ID du projet Firebase Staging (optionnel)
+- `NETLIFY_AUTH_TOKEN` - Token d'authentification Netlify Production (optionnel)
+- `NETLIFY_STAGING_AUTH_TOKEN` - Token d'authentification Netlify Staging (optionnel)
+- `NETLIFY_SITE_ID` - ID du site Netlify Production (optionnel)
+- `NETLIFY_STAGING_SITE_ID` - ID du site Netlify Staging (optionnel)
 
 ### Qualité de code
 - `SONAR_TOKEN` - Token SonarCloud (optionnel)
@@ -102,11 +159,21 @@ Configurez ces secrets dans les paramètres GitHub (Settings > Secrets and varia
 
 ### Déclencher un déploiement manuel
 
+#### Workflow Deploy (classique)
 1. Allez dans l'onglet **Actions** de votre repository GitHub
 2. Sélectionnez le workflow **Deploy**
 3. Cliquez sur **Run workflow**
 4. Choisissez l'environnement (staging ou production)
 5. Cliquez sur **Run workflow**
+
+#### Workflow Deploy Environments (en arbre)
+1. Allez dans l'onglet **Actions** de votre repository GitHub
+2. Sélectionnez le workflow **Deploy Environments**
+3. Cliquez sur **Run workflow**
+4. Choisissez l'environnement (review, staging, ou production)
+5. Cliquez sur **Run workflow**
+
+**Note :** Le déploiement en Production nécessite que Staging soit réussi ou ignoré.
 
 ### Vérifier le statut des workflows
 
