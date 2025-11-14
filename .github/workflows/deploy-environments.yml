@@ -175,23 +175,40 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build web
-        run: flutter build web --release
-
-      - name: Deploy to Review Environment
-        id: deploy
+      - name: Build web (Review)
         run: |
-          echo "🚀 Deploying frontend to Review environment for PR #${{ github.event.pull_request.number }}"
-          # Add your review deployment logic here
+          flutter build web --release \
+            --dart-define=ENVIRONMENT=review \
+            --dart-define=API_URL=https://review-api.sportify.app
+
+      - name: Deploy to Netlify (Review/Deploy Preview)
+        id: deploy
+        if: ${{ secrets.NETLIFY_STAGING_AUTH_TOKEN != '' && secrets.NETLIFY_STAGING_SITE_ID != '' }}
+        uses: nwtgck/actions-netlify@v3.0
+        with:
+          publish-dir: './build/web'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deploy Preview for PR #${{ github.event.pull_request.number }}"
+          enable-pull-request-comment: true
+          enable-commit-comment: false
+          overwrites-pull-request-comment: true
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_STAGING_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_STAGING_SITE_ID }}
+        
+      - name: Fallback Review URL
+        if: steps.deploy.outputs.url == ''
+        id: deploy-fallback
+        run: |
           echo "url=https://review-pr-${{ github.event.pull_request.number }}.sportify.app" >> $GITHUB_OUTPUT
 
       - name: Comment PR with deployment URL
-        if: steps.deploy.outputs.url != ''
+        if: steps.deploy.outputs.url != '' || steps.deploy-fallback.outputs.url != ''
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const url = '${{ steps.deploy.outputs.url }}';
+            const url = '${{ steps.deploy.outputs.url || steps.deploy-fallback.outputs.url }}';
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -298,8 +315,11 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build web
-        run: flutter build web --release
+      - name: Build web (Staging)
+        run: |
+          flutter build web --release \
+            --dart-define=ENVIRONMENT=staging \
+            --dart-define=API_URL=https://staging-api.sportify.app
 
       - name: Deploy to Netlify (Staging)
         id: deploy
@@ -309,9 +329,10 @@ jobs:
           publish-dir: './build/web'
           production-branch: develop
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: "Deploy to Staging from GitHub Actions"
+          deploy-message: "Deploy to Staging from GitHub Actions - ${{ github.sha }}"
           enable-pull-request-comment: false
           enable-commit-comment: true
+          alias: staging.sportify.app
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_STAGING_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_STAGING_SITE_ID }}
@@ -453,12 +474,15 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build web
-        run: flutter build web --release
+      - name: Build web (Production)
+        run: |
+          flutter build web --release \
+            --dart-define=ENVIRONMENT=production \
+            --dart-define=API_URL=https://api.sportify.app
 
       - name: Deploy to Firebase Hosting (Production)
         if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
-        id: deploy
+        id: deploy-firebase
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
@@ -468,18 +492,30 @@ jobs:
 
       - name: Deploy to Netlify (Production)
         if: ${{ secrets.NETLIFY_AUTH_TOKEN != '' && secrets.NETLIFY_SITE_ID != '' }}
+        id: deploy-netlify
         uses: nwtgck/actions-netlify@v3.0
         with:
           publish-dir: './build/web'
           production-branch: main
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: "Deploy to Production from GitHub Actions"
+          deploy-message: "Deploy to Production from GitHub Actions - ${{ github.sha }}"
           enable-pull-request-comment: false
           enable-commit-comment: true
           overwrites-pull-request-comment: true
+          alias: sportify.app
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        
+      - name: Set deployment URL
+        if: steps.deploy-netlify.outputs.url != '' || steps.deploy-firebase.outputs.url != ''
+        run: |
+          if [ -n "${{ steps.deploy-netlify.outputs.url }}" ]; then
+            echo "url=${{ steps.deploy-netlify.outputs.url }}" >> $GITHUB_OUTPUT
+          elif [ -n "${{ steps.deploy-firebase.outputs.url }}" ]; then
+            echo "url=${{ steps.deploy-firebase.outputs.url }}" >> $GITHUB_OUTPUT
+          fi
+        id: deploy
 
   # ============================================
   # 📊 DEPLOYMENT SUMMARY

@@ -1,0 +1,66 @@
+# Netlify Configuration for Sportify Flutter Web App
+
+[build]
+  command = "flutter build web --release"
+  publish = "build/web"
+
+[build.environment]
+  FLUTTER_VERSION = "3.24.0"
+  NODE_VERSION = "20"
+
+# Configuration pour la branche develop (Staging)
+[context.develop]
+  command = "flutter build web --release --dart-define=ENVIRONMENT=staging --dart-define=API_URL=https://staging-api.sportify.app"
+  publish = "build/web"
+
+# Configuration pour la branche main (Production)
+[context.production]
+  command = "flutter build web --release --dart-define=ENVIRONMENT=production --dart-define=API_URL=https://api.sportify.app"
+  publish = "build/web"
+
+# Configuration pour les Pull Requests (Review/Deploy Previews)
+[context.deploy-preview]
+  command = "flutter build web --release --dart-define=ENVIRONMENT=review --dart-define=API_URL=https://review-api.sportify.app"
+  publish = "build/web"
+
+# Configuration pour les branches de fonctionnalités
+[context.branch-deploy]
+  command = "flutter build web --release --dart-define=ENVIRONMENT=development"
+  publish = "build/web"
+
+# Headers de sécurité
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=()"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.sportify.app https://staging-api.sportify.app;"
+
+# Headers pour les assets statiques (cache)
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Redirections pour SPA Flutter (toutes les routes vers index.html)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Redirections HTTPS
+[[redirects]]
+  from = "http://staging.sportify.app/*"
+  to = "https://staging.sportify.app/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://sportify.app/*"
+  to = "https://sportify.app/:splat"
+  status = 301
+  force = true
+
