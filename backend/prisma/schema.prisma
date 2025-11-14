@@ -75,6 +75,10 @@ model User {
   postComments  PostComment[]
   userSports    UserSport[]
   subscription  Subscription?
+  friendshipsSent Friendship[]   @relation("FriendshipRequester")
+  friendshipsReceived Friendship[] @relation("FriendshipAddressee")
+  messagesSent  Message[]        @relation("MessageSender")
+  messagesReceived Message[]      @relation("MessageReceiver")
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 }
@@ -261,5 +265,44 @@ model Subscription {
   updatedAt     DateTime  @updatedAt
 
   @@index([status])
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
+}
+
+model Friendship {
+  id          String            @id @default(cuid())
+  requester   User               @relation("FriendshipRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  requesterId String
+  addressee   User               @relation("FriendshipAddressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+  addresseeId String
+  status      FriendshipStatus   @default(PENDING)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@unique([requesterId, addresseeId])
+  @@index([requesterId])
+  @@index([addresseeId])
+  @@index([status])
+}
+
+model Message {
+  id          String   @id @default(cuid())
+  sender      User     @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  senderId    String
+  receiver    User     @relation("MessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  receiverId  String
+  content     String
+  read        Boolean  @default(false)
+  readAt      DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([createdAt])
 }
 

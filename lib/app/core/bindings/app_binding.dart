@@ -10,6 +10,8 @@ import '../../data/posts/posts_repository.dart';
 import '../../data/users/users_repository.dart';
 import '../../data/users/user_sports_repository.dart';
 import '../../data/subscriptions/subscriptions_repository.dart';
+import '../../data/friends/friends_repository.dart';
+import '../../data/messages/messages_repository.dart';
 import '../../widgets/bottom_navigation/bottom_nav_controller.dart';
 
 class AppBinding extends Bindings {
@@ -25,6 +27,8 @@ class AppBinding extends Bindings {
     Get.put<UsersRepository>(UsersRepository(Get.find<ApiClient>()), permanent: true);
     Get.put<UserSportsRepository>(UserSportsRepository(Get.find<ApiClient>()), permanent: true);
     Get.put<SubscriptionsRepository>(SubscriptionsRepository(Get.find<ApiClient>()), permanent: true);
+    Get.put<FriendsRepository>(FriendsRepository(Get.find<ApiClient>()), permanent: true);
+    Get.put<MessagesRepository>(MessagesRepository(Get.find<ApiClient>()), permanent: true);
     Get.put<BottomNavController>(BottomNavController(), permanent: true);
   }
 }

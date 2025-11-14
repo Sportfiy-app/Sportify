@@ -1,13 +1,16 @@
-import { PrismaClient, EventStatus, ParticipationStatus } from '@prisma/client';
+import { PrismaClient, EventStatus, ParticipationStatus, PostType } from '@prisma/client';
 import createHttpError from 'http-errors';
 
 import { prisma } from '../../db/prisma';
+import { PostsService } from '../posts/posts.service';
 
 export class EventsService {
   private db: PrismaClient;
+  private postsService: PostsService;
 
   constructor() {
     this.db = prisma;
+    this.postsService = new PostsService();
   }
 
   async createEvent(userId: string, data: {
@@ -80,6 +83,25 @@ export class EventsService {
         },
       },
     });
+
+    // Automatically create an EVENT post when an event is created
+    if (event.isPublic) {
+      try {
+        await this.postsService.createPost(userId, {
+          type: 'EVENT',
+          content: `Nouvel événement : ${event.title}\n\n${event.description}\n\n📍 ${event.location}\n📅 ${new Date(event.date).toLocaleDateString('fr-FR')} à ${event.time}`,
+          sport: event.sport,
+          location: event.location,
+          latitude: event.latitude || undefined,
+          longitude: event.longitude || undefined,
+          eventId: event.id,
+          imageUrl: event.imageUrl || undefined,
+        });
+      } catch (error) {
+        // Log error but don't fail event creation if post creation fails
+        console.error('Failed to create event post:', error);
+      }
+    }
 
     return event;
   }

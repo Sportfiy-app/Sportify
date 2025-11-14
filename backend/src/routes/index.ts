@@ -4,7 +4,9 @@ import authRouter from '../modules/auth/auth.router';
 import bookingsRouter from '../modules/bookings/bookings.router';
 import clubsRouter from '../modules/clubs/clubs.router';
 import eventsRouter from '../modules/events/events.router';
+import friendsRouter from '../modules/friends/friends.router';
 import homeRouter from '../modules/home/home.router';
+import messagesRouter from '../modules/messages/messages.router';
 import notificationsRouter from '../modules/notifications/notifications.router';
 import paymentsRouter from '../modules/payments/payments.router';
 import postsRouter from '../modules/posts/posts.router';
@@ -25,6 +27,8 @@ router.use('/reviews', reviewsRouter);
 router.use('/events', eventsRouter);
 router.use('/posts', postsRouter);
 router.use('/subscriptions', subscriptionsRouter);
+router.use('/friends', friendsRouter);
+router.use('/messages', messagesRouter);
 
 export default router;
 
