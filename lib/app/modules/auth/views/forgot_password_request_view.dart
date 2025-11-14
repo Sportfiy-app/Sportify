@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -13,25 +11,19 @@ class ForgotPasswordRequestView extends GetView<ForgotPasswordController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF7FAFF),
       body: LayoutBuilder(
         builder: (context, constraints) {
           const baseWidth = 375.0;
-          const baseHeight = 2333.0;
           final size = MediaQuery.of(context).size;
           final maxWidth =
               constraints.hasBoundedWidth ? constraints.maxWidth : size.width;
-          final maxHeight =
-              constraints.hasBoundedHeight
-                  ? constraints.maxHeight
-                  : size.height;
-          final scale = math
-              .min(maxWidth / baseWidth, maxHeight / baseHeight)
-              .clamp(0.55, 1.1);
+          final scale = (maxWidth / baseWidth).clamp(0.72, 1.15);
           return Container(
-            color: const Color(0xFFF8FAFC),
+            color: const Color(0xFFF7FAFF),
             alignment: Alignment.topCenter,
             child: SizedBox(
-              width: baseWidth * scale,
+              width: maxWidth,
               child: _ForgotPasswordRequestContent(scale: scale),
             ),
           );
@@ -50,41 +42,52 @@ class _ForgotPasswordRequestContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFFE5E7EB)),
-        borderRadius: BorderRadius.circular(s(8)),
-      ),
-      child: Column(
-        children: [
-          _HeaderStepper(scale: scale),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: s(24), vertical: s(32)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _HeroCard(scale: scale),
-                  SizedBox(height: s(32)),
-                  _EmailForm(scale: scale),
-                  SizedBox(height: s(32)),
-                  _OtherOptions(scale: scale),
-                  SizedBox(height: s(24)),
-                  _SecurityBanner(scale: scale),
-                  SizedBox(height: s(24)),
-                  _RecentActivity(scale: scale),
-                  SizedBox(height: s(24)),
-                  _HelpOptions(scale: scale),
-                  SizedBox(height: s(24)),
-                  _TipsCard(scale: scale),
-                  SizedBox(height: s(24)),
-                  _LegalFooter(scale: scale),
-                  SizedBox(height: s(40)),
-                ],
+    return SafeArea(
+      bottom: false,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFF7FAFF), Color(0xFFFFFFFF)],
+          ),
+          border: const Border(
+            left: BorderSide(color: Color(0xFFE5E7EB)),
+            right: BorderSide(color: Color(0xFFE5E7EB)),
+          ),
+        ),
+        child: Column(
+          children: [
+            _HeaderStepper(scale: scale),
+            Expanded(
+              child: SingleChildScrollView(
+                padding:
+                    EdgeInsets.symmetric(horizontal: s(24), vertical: s(32)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _HeroCard(scale: scale),
+                    SizedBox(height: s(32)),
+                    _EmailForm(scale: scale),
+                    SizedBox(height: s(32)),
+                    _OtherOptions(scale: scale),
+                    SizedBox(height: s(24)),
+                    _SecurityBanner(scale: scale),
+                    SizedBox(height: s(24)),
+                    _RecentActivity(scale: scale),
+                    SizedBox(height: s(24)),
+                    _HelpOptions(scale: scale),
+                    SizedBox(height: s(24)),
+                    _TipsCard(scale: scale),
+                    SizedBox(height: s(24)),
+                    _LegalFooter(scale: scale),
+                    SizedBox(height: s(40)),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -98,72 +101,87 @@ class _HeaderStepper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<ForgotPasswordController>();
-    return Container(
-      height: 145 * scale,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
-      ),
-      padding: EdgeInsets.symmetric(
-        horizontal: 16 * scale,
-        vertical: 16 * scale,
-      ),
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 24 * scale, vertical: 12 * scale),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              _CircleButton(
-                icon: Icons.arrow_back_ios_new_rounded,
-                onTap: Get.back,
-                scale: scale,
-              ),
-              SizedBox(width: 12 * scale),
-              Expanded(
-                child: Text(
-                  'Mot de passe oublié',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.poppins(
-                    fontSize: 18 * scale,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF0B1220),
+          SafeArea(
+            bottom: false,
+            child: Row(
+              children: [
+                _CircleButton(
+                  icon: Icons.arrow_back_ios_new_rounded,
+                  onTap: Get.back,
+                  scale: scale,
+                ),
+                Expanded(
+                  child: Text(
+                    'Mot de passe oublié',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14 * scale,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF0B1220),
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(width: 52 * scale),
-            ],
+                SizedBox(width: 40 * scale),
+              ],
+            ),
           ),
           SizedBox(height: 24 * scale),
-          Obx(() {
-            final step = controller.currentStep.value;
-            return Row(
-              children: [
-                _StepChip(
-                  scale: scale,
-                  label: 'Email',
-                  index: 1,
-                  isActive: step == ForgotPasswordStep.email,
-                  isCompleted: step != ForgotPasswordStep.email,
-                ),
-                _StepDivider(scale: scale),
-                _StepChip(
-                  scale: scale,
-                  label: 'Code',
-                  index: 2,
-                  isActive: step == ForgotPasswordStep.verify,
-                  isCompleted: step == ForgotPasswordStep.done,
-                ),
-                _StepDivider(scale: scale),
-                _StepChip(
-                  scale: scale,
-                  label: 'Nouveau',
-                  index: 3,
-                  isActive: step == ForgotPasswordStep.done,
-                  isCompleted: false,
+          Container(
+            padding: EdgeInsets.symmetric(
+              vertical: 18 * scale,
+              horizontal: 20 * scale,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20 * scale),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 20 * scale,
+                  offset: Offset(0, 12 * scale),
                 ),
               ],
-            );
-          }),
+            ),
+            child: Obx(
+              () {
+                final step = controller.currentStep.value;
+                return Row(
+                  children: [
+                    _StepChip(
+                      scale: scale,
+                      label: 'Email',
+                      index: 1,
+                      isActive: step == ForgotPasswordStep.email,
+                      isCompleted: step != ForgotPasswordStep.email,
+                    ),
+                    _StepDivider(scale: scale),
+                    _StepChip(
+                      scale: scale,
+                      label: 'Code',
+                      index: 2,
+                      isActive: step == ForgotPasswordStep.verify,
+                      isCompleted: step == ForgotPasswordStep.done,
+                    ),
+                    _StepDivider(scale: scale),
+                    _StepChip(
+                      scale: scale,
+                      label: 'Nouveau',
+                      index: 3,
+                      isActive: step == ForgotPasswordStep.done,
+                      isCompleted: false,
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
@@ -246,8 +264,13 @@ class _StepDivider extends StatelessWidget {
     return Container(
       width: 48 * scale,
       height: 2,
-      margin: EdgeInsets.symmetric(horizontal: 4 * scale),
-      color: const Color(0xFFE2E8F0),
+      margin: EdgeInsets.symmetric(horizontal: 6 * scale),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        gradient: const LinearGradient(
+          colors: [Color(0xFFE5ECFF), Color(0xFFD9E3FF)],
+        ),
+      ),
     );
   }
 }

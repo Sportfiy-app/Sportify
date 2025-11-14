@@ -7,6 +7,9 @@ export const registerSchema = z.object({
   role: z.enum(['USER', 'CLUB_MANAGER', 'ADMIN']).optional(),
   firstName: z.string().max(100).optional(),
   lastName: z.string().max(100).optional(),
+  dateOfBirth: z.string().datetime().optional(),
+  gender: z.string().max(50).optional(),
+  city: z.string().max(100).optional(),
 });
 
 export const loginSchema = z.object({

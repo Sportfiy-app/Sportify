@@ -1,16 +1,629 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-enum HomeQuickActionType { book, meet, play }
+import '../../../data/home/home_repository.dart';
+import '../../../data/home/models/home_feed_response.dart';
+
+enum HomeFeedTab { recommended, friends, nearby, live }
 
 class HomeController extends GetxController {
+  HomeController(this._homeRepository);
+
+  final HomeRepository _homeRepository;
+
   static const versionLabel = 'Version 1.0.0';
-  static const ctaLabel = 'Commencer';
 
-  void onGetStarted() {
-    // TODO: Implement navigation to onboarding or authentication.
+  final Rx<HomeFeedTab> currentTab = HomeFeedTab.recommended.obs;
+  final RxString sportFilter = 'Tous les sports'.obs;
+  final RxBool isLoading = false.obs;
+  final RxnString errorMessage = RxnString();
+
+  final RxList<HomeStory> _stories = <HomeStory>[].obs;
+  final RxList<HomeQuickShortcut> _shortcuts = <HomeQuickShortcut>[].obs;
+  final RxList<HomeFeedPost> _feedPosts = <HomeFeedPost>[].obs;
+  final Rx<HomeEventHighlight?> _upcomingEvent = Rx<HomeEventHighlight?>(null);
+  final Rx<HomeVenueRecommendation?> _venueHighlight = Rx<HomeVenueRecommendation?>(null);
+  final Rx<HomeCommunityHighlight?> _communityHighlight = Rx<HomeCommunityHighlight?>(null);
+
+  List<HomeStory> get stories => _stories;
+  List<HomeQuickShortcut> get shortcuts => _shortcuts;
+  List<HomeFeedPost> get feedPosts => _feedPosts;
+  
+  // Filtered posts based on current tab and sport filter - reactive getter
+  List<HomeFeedPost> get filteredFeedPosts {
+    // Access currentTab.value and sportFilter.value to make this reactive
+    final activeTab = currentTab.value;
+    final selectedSport = sportFilter.value;
+    
+    return _feedPosts.where((post) {
+      try {
+        // First filter by tab
+        final postTabs = post.tabs;
+        final matchesTab = postTabs.isEmpty 
+            ? activeTab == HomeFeedTab.recommended
+            : postTabs.contains(activeTab);
+        
+        if (!matchesTab) return false;
+        
+        // Then filter by sport if not "Tous les sports"
+        if (selectedSport == 'Tous les sports') {
+          return true;
+        }
+        
+        return post.sportLabel == selectedSport;
+      } catch (e) {
+        // Safety fallback: if tabs is null or invalid, show in recommended only
+        return activeTab == HomeFeedTab.recommended;
+      }
+    }).toList();
+  }
+  HomeEventHighlight? get upcomingEvent => _upcomingEvent.value;
+  HomeVenueRecommendation? get venueHighlight => _venueHighlight.value;
+  HomeCommunityHighlight? get communityHighlight => _communityHighlight.value;
+
+  final List<String> availableSportFilters = const [
+    'Tous les sports',
+    'Football',
+    'Tennis',
+    'Running',
+    'Basketball',
+    'Fitness',
+  ];
+
+  @override
+  void onInit() {
+    super.onInit();
+    // Don't set defaults - only show real data from backend
+    // _setDefaults(); // Removed - we only want real data
+    fetchHome();
   }
 
-  void onQuickActionTap(HomeQuickActionType type) {
-    // TODO: Implement quick action interactions.
+
+  Future<void> fetchHome() async {
+    isLoading.value = true;
+    errorMessage.value = null;
+    try {
+      final response = await _homeRepository.fetchHome();
+      _stories.assignAll(response.stories.map(_mapStory).toList());
+      _shortcuts.assignAll(response.shortcuts.map(_mapShortcut).toList());
+      // Map posts and ensure all have tabs
+      final mappedPosts = response.posts.map((postModel) {
+        final post = _mapPost(postModel);
+        // Ensure post has valid tabs (default to recommended if empty)
+        if (post.tabs.isEmpty) {
+          return HomeFeedPost(
+            author: post.author,
+            avatarUrl: post.avatarUrl,
+            location: post.location,
+            distance: post.distance,
+            timeAgo: post.timeAgo,
+            sportLabel: post.sportLabel,
+            sportColor: post.sportColor,
+            message: post.message,
+            imageUrl: post.imageUrl,
+            stats: post.stats,
+            hasDirectMessageCta: post.hasDirectMessageCta,
+            tabs: [HomeFeedTab.recommended],
+          );
+        }
+        return post;
+      }).toList();
+      _feedPosts.assignAll(mappedPosts);
+      
+      // Map event - only set if event has valid data
+      if (response.upcomingEvent.title.isNotEmpty && response.upcomingEvent.title != 'Aucun événement à venir') {
+        _upcomingEvent.value = _mapEvent(response.upcomingEvent);
+      } else {
+        _upcomingEvent.value = null;
+      }
+      
+      // Map venue and community - always set (backend provides defaults)
+      _venueHighlight.value = _mapVenue(response.venue);
+      _communityHighlight.value = _mapCommunity(response.community);
+    } catch (error) {
+      errorMessage.value = "Impossible de récupérer l'actualité Sportify.";
+      // Clear posts on error - don't show mock data
+      _feedPosts.clear();
+      _stories.clear();
+      _shortcuts.clear();
+    } finally {
+      isLoading.value = false;
+    }
   }
+
+  HomeStory _mapStory(HomeStoryModel model) {
+    return HomeStory(name: model.name, imageUrl: model.imageUrl, isAddButton: model.isAddButton);
+  }
+
+  HomeQuickShortcut _mapShortcut(HomeShortcutModel model) {
+    return HomeQuickShortcut(
+      label: model.label,
+      icon: _mapIcon(model.icon),
+      background: _parseHexColor(model.background),
+      iconColor: _parseHexColor(model.iconColor),
+    );
+  }
+
+  HomeFeedPost _mapPost(HomeFeedPostModel model) {
+    // Default to recommended tab if no tabs specified from API
+    return HomeFeedPost(
+      author: model.author,
+      avatarUrl: model.avatarUrl,
+      location: model.location,
+      distance: model.distance,
+      timeAgo: model.timeAgo,
+      sportLabel: model.sportLabel,
+      sportColor: _parseHexColor(model.sportColor),
+      message: model.message,
+      imageUrl: model.imageUrl,
+      stats: HomeFeedStats(
+        likes: model.stats.likes,
+        comments: model.stats.comments,
+        shares: model.stats.shares,
+        participants: model.stats.participants,
+      ),
+      hasDirectMessageCta: model.hasDirectMessageCta,
+      tabs: [HomeFeedTab.recommended], // Default to recommended for API posts
+    );
+  }
+
+  HomeEventHighlight _mapEvent(HomeEventModel model) {
+    return HomeEventHighlight(
+      title: model.title,
+      subtitle: model.subtitle,
+      organizer: model.organizer,
+      badge: model.badge,
+      capacityLabel: model.capacityLabel,
+      priceLabel: model.priceLabel,
+      id: model.id,
+    );
+  }
+
+  HomeVenueRecommendation _mapVenue(HomeVenueModel model) {
+    return HomeVenueRecommendation(
+      name: model.name,
+      rating: model.rating,
+      distance: model.distance,
+      price: model.price,
+      imageUrl: model.imageUrl,
+    );
+  }
+
+  HomeCommunityHighlight _mapCommunity(HomeCommunityModel model) {
+    return HomeCommunityHighlight(
+      title: model.title,
+      subtitle: model.subtitle,
+      headline: model.headline,
+      message: model.message,
+      membersLabel: model.membersLabel,
+      matchesLabel: model.matchesLabel,
+    );
+  }
+
+  Color _parseHexColor(String value) {
+    var hex = value.trim();
+    if (hex.startsWith('#')) {
+      hex = hex.substring(1);
+    } else if (hex.startsWith('0x')) {
+      hex = hex.substring(2);
+    }
+    if (hex.length == 6) {
+      hex = 'FF$hex';
+    }
+    return Color(int.parse(hex, radix: 16));
+  }
+
+  IconData _mapIcon(String iconName) {
+    switch (iconName) {
+      case 'event_available_outlined':
+        return Icons.event_available_outlined;
+      case 'location_on_outlined':
+        return Icons.location_on_outlined;
+      case 'groups_2_outlined':
+        return Icons.groups_2_outlined;
+      case 'military_tech_outlined':
+        return Icons.military_tech_outlined;
+      default:
+        return Icons.sports_soccer_rounded;
+    }
+  }
+
+  void changeTab(HomeFeedTab tab) {
+    currentTab.value = tab;
+  }
+
+  void selectSportFilter(String label) {
+    sportFilter.value = label;
+    update(); // Update GetBuilder listeners
+  }
+
+  // Get icon for a sport
+  IconData getSportIcon(String sport) {
+    switch (sport) {
+      case 'Football':
+        return Icons.sports_soccer_rounded;
+      case 'Tennis':
+        return Icons.sports_tennis_rounded;
+      case 'Running':
+        return Icons.directions_run_rounded;
+      case 'Basketball':
+        return Icons.sports_basketball_rounded;
+      case 'Fitness':
+        return Icons.fitness_center_rounded;
+      case 'Tous les sports':
+      default:
+        return Icons.sports_rounded;
+    }
+  }
+
+  // Get color for a sport
+  Color getSportColor(String sport) {
+    switch (sport) {
+      case 'Football':
+        return const Color(0xFF176BFF);
+      case 'Tennis':
+        return const Color(0xFF16A34A);
+      case 'Running':
+        return const Color(0xFF16A34A);
+      case 'Basketball':
+        return const Color(0xFFFFB800);
+      case 'Fitness':
+        return const Color(0xFF0EA5E9);
+      case 'Tous les sports':
+      default:
+        return const Color(0xFF176BFF);
+    }
+  }
+
+  void onSearchTap() {
+    Get.snackbar('Recherche', 'Fonction recherche à venir');
+  }
+
+  void onNotificationsTap() {
+    Get.snackbar('Notifications', 'Vous êtes à jour !');
+  }
+
+  void onNewMessageTap() {
+    Get.snackbar('Messages', 'Ouverture des messages prochainement');
+  }
+
+  void onCreateEventTap() {
+    Get.toNamed('/event/create');
+  }
+
+  void onQuickShortcutTap(HomeQuickShortcut shortcut) {
+    switch (shortcut.label) {
+      case 'Créer événement':
+        Get.toNamed('/event/create');
+        break;
+      case 'Terrains proches':
+        Get.toNamed('/map/venues');
+        break;
+      case 'Groupes':
+        Get.toNamed('/groups');
+        break;
+      case 'Tournois':
+        Get.snackbar(
+          'Tournois',
+          'Fonctionnalité à venir',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: const Color(0xFF0EA5E9).withValues(alpha: 0.9),
+          colorText: Colors.white,
+          margin: const EdgeInsets.all(16),
+          borderRadius: 12,
+          icon: const Icon(Icons.military_tech_rounded, color: Colors.white),
+        );
+        break;
+      default:
+        Get.snackbar(shortcut.label, 'Action à venir');
+    }
+  }
+
+  void onFeedPostAction(HomeFeedPost post) {
+    Get.snackbar(post.author, 'Interaction prochainement');
+  }
+
+  void onLoadMore() {
+    Get.snackbar('À la une', 'Chargement de nouvelles publications');
+  }
+
+  void onVenueAction() {
+    Get.snackbar('Réservation', 'Réservation du terrain en cours');
+  }
+
+  void onCommunityAction() {
+    Get.snackbar('Communauté', 'Merci de faire partie de Sportify !');
+  }
+
+  static const _defaultStories = [
+    HomeStory(isAddButton: true),
+    HomeStory(name: 'Marc', imageUrl: 'https://images.unsplash.com/photo-1521412644187-c49fa049e84d?auto=format&fit=crop&w=200&q=60'),
+    HomeStory(name: 'Julie', imageUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=60'),
+    HomeStory(name: 'Tom', imageUrl: 'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=200&q=60'),
+    HomeStory(name: 'Sarah', imageUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=60'),
+    HomeStory(name: 'Alex', imageUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=60'),
+  ];
+
+  static const _defaultShortcuts = [
+    HomeQuickShortcut(
+      label: 'Créer événement',
+      icon: Icons.event_available_outlined,
+      background: Color(0x19176BFF),
+      iconColor: Color(0xFF176BFF),
+    ),
+    HomeQuickShortcut(
+      label: 'Terrains proches',
+      icon: Icons.location_on_outlined,
+      background: Color(0x1916A34A),
+      iconColor: Color(0xFF16A34A),
+    ),
+    HomeQuickShortcut(
+      label: 'Groupes',
+      icon: Icons.groups_2_outlined,
+      background: Color(0x19FFB800),
+      iconColor: Color(0xFFFFB800),
+    ),
+    HomeQuickShortcut(
+      label: 'Tournois',
+      icon: Icons.military_tech_outlined,
+      background: Color(0x190EA5E9),
+      iconColor: Color(0xFF0EA5E9),
+    ),
+  ];
+
+  static const _defaultPosts = [
+    // Recommended posts
+    HomeFeedPost(
+      author: 'Marc Dubois',
+      avatarUrl: 'https://images.unsplash.com/photo-1521412644187-c49fa049e84d?auto=format&fit=crop&w=200&q=60',
+      location: 'Paris 15ᵉ',
+      distance: '1.2 km',
+      timeAgo: 'il y a 2h',
+      sportLabel: 'Football',
+      sportColor: Color(0xFF176BFF),
+      message: 'Qui pour un match de foot ce soir à 19h au terrain de Boucicaut ? Il nous manque 2 joueurs ! 🔥',
+      imageUrl: 'https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=900&q=60',
+      stats: HomeFeedStats(likes: 24, comments: 8, shares: 3, participants: 156),
+      tabs: [HomeFeedTab.recommended, HomeFeedTab.nearby],
+    ),
+    HomeFeedPost(
+      author: 'Tom Leroy',
+      avatarUrl: 'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=200&q=60',
+      location: 'Neuilly',
+      distance: '2.1 km',
+      timeAgo: 'il y a 6h',
+      sportLabel: 'Basketball',
+      sportColor: Color(0xFFFFB800),
+      message: 'Tournoi 3x3 ce weekend ! Inscription ouverte, 50€ par équipe. Lots à gagner ! 🏆',
+      imageUrl: 'https://images.unsplash.com/photo-1518611012118-696096aa27de?auto=format&fit=crop&w=900&q=60',
+      stats: HomeFeedStats(likes: 42, comments: 15, shares: 7, participants: 203),
+      hasDirectMessageCta: true,
+      tabs: [HomeFeedTab.recommended],
+    ),
+    // Friends posts
+    HomeFeedPost(
+      author: 'Julie Martin',
+      avatarUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=60',
+      location: 'Boulogne',
+      distance: '800 m',
+      timeAgo: 'il y a 4h',
+      sportLabel: 'Running',
+      sportColor: Color(0xFF16A34A),
+      message: 'Session running matinale demain 7h au Bois de Boulogne ! Qui se joint à moi pour 10km ? 🏃‍♀️',
+      stats: HomeFeedStats(likes: 18, comments: 12, shares: 5, participants: 89),
+      hasDirectMessageCta: true,
+      tabs: [HomeFeedTab.friends, HomeFeedTab.recommended],
+    ),
+    HomeFeedPost(
+      author: 'Alex Bernard',
+      avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=60',
+      location: 'Paris 10ᵉ',
+      distance: '1.5 km',
+      timeAgo: 'il y a 1h',
+      sportLabel: 'Tennis',
+      sportColor: Color(0xFF16A34A),
+      message: 'Match de tennis ce soir à 18h ! Qui veut jouer ? 🎾',
+      stats: HomeFeedStats(likes: 15, comments: 6, shares: 2, participants: 45),
+      tabs: [HomeFeedTab.friends],
+    ),
+    // Nearby posts
+    HomeFeedPost(
+      author: 'Sarah Chen',
+      avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=60',
+      location: 'Montparnasse',
+      distance: '1.8 km',
+      timeAgo: 'il y a 8h',
+      sportLabel: 'Fitness',
+      sportColor: Color(0xFF0EA5E9),
+      message: 'Session CrossFit intense ce matin ! Qui veut se joindre à moi pour brûler des calories ? 💪',
+      imageUrl: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=900&q=60',
+      stats: HomeFeedStats(likes: 31, comments: 9, shares: 4, participants: 127),
+      hasDirectMessageCta: true,
+      tabs: [HomeFeedTab.nearby, HomeFeedTab.recommended],
+    ),
+    HomeFeedPost(
+      author: 'Pierre Moreau',
+      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=60',
+      location: 'Paris 11ᵉ',
+      distance: '500 m',
+      timeAgo: 'il y a 30min',
+      sportLabel: 'Football',
+      sportColor: Color(0xFF176BFF),
+      message: 'Match de foot improvisé au parc ! Venez nombreux ! ⚽',
+      stats: HomeFeedStats(likes: 8, comments: 3, shares: 1, participants: 12),
+      tabs: [HomeFeedTab.nearby],
+    ),
+    // Live posts
+    HomeFeedPost(
+      author: 'Emma Laurent',
+      avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=60',
+      location: 'Paris 16ᵉ',
+      distance: '2.5 km',
+      timeAgo: 'Maintenant',
+      sportLabel: 'Yoga',
+      sportColor: Color(0xFF8B5CF6),
+      message: 'Session yoga en cours au parc ! Rejoignez-nous ! 🧘‍♀️',
+      stats: HomeFeedStats(likes: 5, comments: 2, shares: 1, participants: 8),
+      tabs: [HomeFeedTab.live],
+    ),
+    HomeFeedPost(
+      author: 'Lucas Petit',
+      avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=60',
+      location: 'Paris 7ᵉ',
+      distance: '1.0 km',
+      timeAgo: 'En direct',
+      sportLabel: 'Running',
+      sportColor: Color(0xFF16A34A),
+      message: 'Course en cours ! 5km parcourus, encore 3km à faire ! 🏃',
+      stats: HomeFeedStats(likes: 12, comments: 4, shares: 2, participants: 6),
+      tabs: [HomeFeedTab.live],
+    ),
+  ];
+
+  static const _defaultEvent = HomeEventHighlight(
+    title: 'Tournoi de Tennis Open',
+    subtitle: 'Samedi 28 Oct • 14h-18h • Roland Garros Academy',
+    organizer: 'SportClub Paris',
+    badge: 'PREMIUM',
+    capacityLabel: '24/32 inscrits',
+    priceLabel: '25€',
+    id: null,
+  );
+
+  static const _defaultVenue = HomeVenueRecommendation(
+    name: 'Tennis Club Auteuil',
+    rating: '4.8',
+    distance: '900 m',
+    price: 'Dès 25€/h',
+    imageUrl: 'https://images.unsplash.com/photo-1505751104546-4b63c93054b1?auto=format&fit=crop&w=900&q=60',
+  );
+
+  static const _defaultCommunity = HomeCommunityHighlight(
+    title: 'Communauté Sportify',
+    subtitle: 'Actualité de la semaine',
+    headline: '🎉 1000 matchs organisés ce mois !',
+    message: 'La communauté Sportify grandit ! Merci à tous les sportifs actifs. Continuez à partager vos sessions !',
+    membersLabel: '12.4k membres',
+    matchesLabel: '1000 matchs',
+  );
+}
+
+class HomeStory {
+  const HomeStory({this.name, this.imageUrl, this.isAddButton = false});
+
+  final String? name;
+  final String? imageUrl;
+  final bool isAddButton;
+}
+
+class HomeQuickShortcut {
+  const HomeQuickShortcut({
+    required this.label,
+    required this.icon,
+    required this.background,
+    required this.iconColor,
+  });
+
+  final String label;
+  final IconData icon;
+  final Color background;
+  final Color iconColor;
+}
+
+class HomeFeedPost {
+  const HomeFeedPost({
+    required this.author,
+    required this.avatarUrl,
+    required this.location,
+    required this.distance,
+    required this.timeAgo,
+    required this.sportLabel,
+    required this.sportColor,
+    required this.message,
+    required this.stats,
+    required this.tabs,
+    this.imageUrl,
+    this.hasDirectMessageCta = false,
+  });
+
+  final String author;
+  final String avatarUrl;
+  final String location;
+  final String distance;
+  final String timeAgo;
+  final String sportLabel;
+  final Color sportColor;
+  final String message;
+  final String? imageUrl;
+  final HomeFeedStats stats;
+  final bool hasDirectMessageCta;
+  final List<HomeFeedTab> tabs; // Which tabs this post should appear in
+}
+
+class HomeFeedStats {
+  const HomeFeedStats({
+    required this.likes,
+    required this.comments,
+    required this.shares,
+    required this.participants,
+  });
+
+  final int likes;
+  final int comments;
+  final int shares;
+  final int participants;
+}
+
+class HomeEventHighlight {
+  const HomeEventHighlight({
+    required this.title,
+    required this.subtitle,
+    required this.organizer,
+    required this.badge,
+    required this.capacityLabel,
+    required this.priceLabel,
+    this.id,
+  });
+
+  final String title;
+  final String subtitle;
+  final String organizer;
+  final String badge;
+  final String capacityLabel;
+  final String priceLabel;
+  final String? id;
+}
+
+class HomeVenueRecommendation {
+  const HomeVenueRecommendation({
+    required this.name,
+    required this.rating,
+    required this.distance,
+    required this.price,
+    required this.imageUrl,
+  });
+
+  final String name;
+  final String rating;
+  final String distance;
+  final String price;
+  final String imageUrl;
+}
+
+class HomeCommunityHighlight {
+  const HomeCommunityHighlight({
+    required this.title,
+    required this.subtitle,
+    required this.headline,
+    required this.message,
+    required this.membersLabel,
+    required this.matchesLabel,
+  });
+
+  final String title;
+  final String subtitle;
+  final String headline;
+  final String message;
+  final String membersLabel;
+  final String matchesLabel;
 }

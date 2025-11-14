@@ -5,11 +5,13 @@ import { authenticate } from '../../middleware/auth';
 import { validateBody } from '../../middleware/validate';
 
 import { loginSchema, refreshSchema, registerSchema } from './auth.schema';
+import { sendSmsCodeSchema, verifySmsCodeSchema, sendEmailVerificationSchema, verifyEmailSchema } from './verification.schema';
 import { AuthService } from './auth.service';
-
+import { VerificationService } from './verification.service';
 
 const router = Router();
 const authService = new AuthService();
+const verificationService = new VerificationService();
 
 router.post(
   '/register',
@@ -60,6 +62,63 @@ router.post(
   } catch (error) {
     next(error);
   }
+  },
+);
+
+// SMS Verification routes
+router.post(
+  '/verification/sms/send',
+  authenticate(),
+  validateBody(sendSmsCodeSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await verificationService.sendSmsCode(req.body.phone, req.user!.sub);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+router.post(
+  '/verification/sms/verify',
+  authenticate(),
+  validateBody(verifySmsCodeSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await verificationService.verifySmsCode(req.body.phone, req.body.code, req.user!.sub);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+// Email Verification routes
+router.post(
+  '/verification/email/send',
+  authenticate(),
+  validateBody(sendEmailVerificationSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await verificationService.sendEmailVerification(req.body.email, req.user!.sub);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+router.post(
+  '/verification/email/verify',
+  validateBody(verifyEmailSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await verificationService.verifyEmail(req.body.token);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
   },
 );
 

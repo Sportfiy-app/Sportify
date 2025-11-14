@@ -17,20 +17,20 @@ class IntroView extends GetView<IntroController> {
           const baseWidth = 375.0;
           const baseHeight = 937.0;
 
-          final maxWidth =
+          final screenWidth =
               constraints.maxWidth.isFinite
                   ? constraints.maxWidth
                   : MediaQuery.of(context).size.width;
-          final maxHeight =
+          final screenHeight =
               constraints.maxHeight.isFinite
                   ? constraints.maxHeight
                   : MediaQuery.of(context).size.height;
 
-          final scaleX = maxWidth / baseWidth;
-          final scaleY = maxHeight / baseHeight;
+          final scaleX = screenWidth / baseWidth;
+          final scaleY = screenHeight / baseHeight;
           final scale = math.min(scaleX, scaleY).clamp(0.65, 1.6);
 
-          return Container(
+          return DecoratedBox(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment(0.35, 0.35),
@@ -44,9 +44,13 @@ class IntroView extends GetView<IntroController> {
             ),
             child: Center(
               child: SizedBox(
-                width: baseWidth * scale,
-                height: baseHeight * scale,
-                child: _IntroArtboard(scale: scale),
+                width: screenWidth,
+                height: screenHeight,
+                child: _IntroArtboard(
+                  scale: scale,
+                  width: screenWidth,
+                  height: screenHeight,
+                ),
               ),
             ),
           );
@@ -57,52 +61,73 @@ class IntroView extends GetView<IntroController> {
 }
 
 class _IntroArtboard extends StatelessWidget {
-  const _IntroArtboard({required this.scale});
+  const _IntroArtboard({
+    required this.scale,
+    required this.width,
+    required this.height,
+  });
 
   final double scale;
+  final double width;
+  final double height;
 
   double s(double value) => value * scale;
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: const Color(0xFFE5E7EB)),
+    return SizedBox(
+      width: width,
+      height: height,
+      child: Stack(
+        children: [
+          _DecorativeShapes(scale: scale),
+          Positioned.fill(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final horizontalPadding = s(24);
+                final basePadding = EdgeInsets.symmetric(
+                  horizontal: horizontalPadding,
+                ).copyWith(top: s(12), bottom: s(32));
+
+                return SingleChildScrollView(
+                  padding: EdgeInsets.only(bottom: s(24)),
+                  child: SafeArea(
+                    top: true,
+                    bottom: false,
+                    child: Padding(
+                      padding: basePadding,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          _HeaderTags(scale: scale),
+                          SizedBox(height: s(20)),
+                          Align(
+                            alignment: Alignment.center,
+                            child: _LivePlayersBanner(scale: scale),
+                          ),
+                          SizedBox(height: s(28)),
+                          _HeroLogo(scale: scale),
+                          SizedBox(height: s(20)),
+                          _HeroCopy(scale: scale),
+                          SizedBox(height: s(28)),
+                          _FeatureHighlights(scale: scale),
+                          SizedBox(height: s(28)),
+                          _CommunityCard(scale: scale),
+                          SizedBox(height: s(36)),
+                          _CallToAction(scale: scale),
+                          SizedBox(height: s(16)),
+                          _ProgressDots(scale: scale),
+                          SizedBox(height: s(12)),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
-        ),
-        _DecorativeShapes(scale: scale),
-        Positioned.fill(
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: s(24),
-            ).copyWith(top: s(24), bottom: s(32)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                _HeaderTags(scale: scale),
-                SizedBox(height: s(16)),
-                _LivePlayersBanner(scale: scale),
-                SizedBox(height: s(32)),
-                _HeroLogo(scale: scale),
-                SizedBox(height: s(24)),
-                _HeroCopy(scale: scale),
-                SizedBox(height: s(32)),
-                _FeatureHighlights(scale: scale),
-                SizedBox(height: s(32)),
-                _CommunityCard(scale: scale),
-                SizedBox(height: s(32)),
-                _CallToAction(scale: scale),
-                SizedBox(height: s(16)),
-                _ProgressDots(scale: scale),
-              ],
-            ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

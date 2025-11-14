@@ -9,6 +9,9 @@ exports.registerSchema = zod_1.z.object({
     role: zod_1.z.enum(['USER', 'CLUB_MANAGER', 'ADMIN']).optional(),
     firstName: zod_1.z.string().max(100).optional(),
     lastName: zod_1.z.string().max(100).optional(),
+    dateOfBirth: zod_1.z.string().datetime().optional(),
+    gender: zod_1.z.string().max(50).optional(),
+    city: zod_1.z.string().max(100).optional(),
 });
 exports.loginSchema = zod_1.z.object({
     email: zod_1.z.string().email(),

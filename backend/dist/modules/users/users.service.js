@@ -16,6 +16,7 @@ class UsersService {
                 phone: true,
                 firstName: true,
                 lastName: true,
+                avatarUrl: true,
                 role: true,
                 createdAt: true,
                 updatedAt: true,
@@ -36,6 +37,27 @@ class UsersService {
                 phone: true,
                 firstName: true,
                 lastName: true,
+                avatarUrl: true,
+                dateOfBirth: true,
+                gender: true,
+                city: true,
+                role: true,
+                createdAt: true,
+                updatedAt: true,
+            },
+        });
+    }
+    async uploadAvatar(id, imageUrl) {
+        return prisma_1.prisma.user.update({
+            where: { id },
+            data: { avatarUrl: imageUrl },
+            select: {
+                id: true,
+                email: true,
+                phone: true,
+                firstName: true,
+                lastName: true,
+                avatarUrl: true,
                 role: true,
                 createdAt: true,
                 updatedAt: true,

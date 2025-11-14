@@ -1,9 +1,8 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../routes/app_routes.dart';
 import '../controllers/forgot_password_controller.dart';
 
 class ForgotPasswordVerifyView extends GetView<ForgotPasswordController> {
@@ -12,25 +11,19 @@ class ForgotPasswordVerifyView extends GetView<ForgotPasswordController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF7FAFF),
       body: LayoutBuilder(
         builder: (context, constraints) {
           const baseWidth = 375.0;
-          const baseHeight = 2333.0;
           final size = MediaQuery.of(context).size;
           final maxWidth =
               constraints.hasBoundedWidth ? constraints.maxWidth : size.width;
-          final maxHeight =
-              constraints.hasBoundedHeight
-                  ? constraints.maxHeight
-                  : size.height;
-          final scale = math
-              .min(maxWidth / baseWidth, maxHeight / baseHeight)
-              .clamp(0.55, 1.1);
+          final scale = (maxWidth / baseWidth).clamp(0.8, 1.2);
           return Container(
-            color: const Color(0xFFF8FAFC),
+            color: const Color(0xFFF7FAFF),
             alignment: Alignment.topCenter,
             child: SizedBox(
-              width: baseWidth * scale,
+              width: maxWidth,
               child: _VerifyContent(scale: scale),
             ),
           );
@@ -49,32 +42,132 @@ class _VerifyContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFFE5E7EB)),
-        borderRadius: BorderRadius.circular(s(24)),
+    return SafeArea(
+      bottom: false,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFF7FAFF), Color(0xFFFFFFFF)],
+          ),
+          border: const Border(
+            left: BorderSide(color: Color(0xFFE5E7EB)),
+            right: BorderSide(color: Color(0xFFE5E7EB)),
+          ),
+        ),
+        child: Column(
+          children: [
+            _VerifyTopBar(scale: scale),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(horizontal: s(24)),
+                child: Column(
+                  children: [
+                    SizedBox(height: s(24)),
+                    _VerifyHero(scale: scale),
+                    SizedBox(height: s(32)),
+                    _VerifyHeading(scale: scale),
+                    SizedBox(height: s(24)),
+                    _PhoneSummary(scale: scale),
+                    SizedBox(height: s(24)),
+                    _OtpInput(scale: scale),
+                    SizedBox(height: s(20)),
+                    _ResendHelp(scale: scale),
+                    SizedBox(height: s(24)),
+                    _VerifyButton(scale: scale),
+                    SizedBox(height: s(24)),
+                    _SecurityInfoCard(scale: scale),
+                    SizedBox(height: s(24)),
+                    _HelpOptionsList(scale: scale),
+                    SizedBox(height: s(24)),
+                    _SocialConnect(scale: scale),
+                    SizedBox(height: s(32)),
+                    _VerifyFooter(scale: scale),
+                    SizedBox(height: s(40)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
-      child: Column(
+    );
+  }
+}
+
+class _VerifyTopBar extends StatelessWidget {
+  const _VerifyTopBar({required this.scale});
+
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 24 * scale, vertical: 12 * scale),
+      child: Row(
         children: [
-          _GradientHeader(scale: scale),
+          _CircleButton(
+            icon: Icons.arrow_back_ios_new_rounded,
+            onTap: Get.find<ForgotPasswordController>().goToEmail,
+            scale: scale,
+          ),
           Expanded(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: s(24), vertical: s(32)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _StepIndicator(scale: scale),
-                  SizedBox(height: s(32)),
-                  _InstructionCard(scale: scale),
-                  SizedBox(height: s(32)),
-                  _CodeForm(scale: scale),
-                  SizedBox(height: s(32)),
-                  _ActionButtons(scale: scale),
-                  SizedBox(height: s(24)),
-                  _SupportPrompt(scale: scale),
-                  SizedBox(height: s(24)),
-                  _FooterBar(scale: scale),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 32 * scale,
+                  height: 32 * scale,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF176BFF),
+                    borderRadius: BorderRadius.circular(9999),
+                    border: Border.all(color: const Color(0xFFE5E7EB)),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    'S',
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontSize: 18 * scale,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                SizedBox(width: 12 * scale),
+                Text(
+                  'Sportify',
+                  style: GoogleFonts.poppins(
+                    color: const Color(0xFF0B1220),
+                    fontSize: 20 * scale,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          GestureDetector(
+            onTap: () => Get.offAllNamed(Routes.loginEmail),
+            child: Container(
+              width: 40 * scale,
+              height: 40 * scale,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(9999),
+                border: Border.all(color: const Color(0xFFE5E7EB)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 12 * scale,
+                    offset: Offset(0, 6 * scale),
+                  ),
                 ],
+              ),
+              alignment: Alignment.center,
+              child: Icon(
+                Icons.close_rounded,
+                size: 18 * scale,
+                color: const Color(0xFF475569),
               ),
             ),
           ),
@@ -84,198 +177,176 @@ class _VerifyContent extends StatelessWidget {
   }
 }
 
-class _GradientHeader extends StatelessWidget {
-  const _GradientHeader({required this.scale});
+class _VerifyHero extends StatelessWidget {
+  const _VerifyHero({required this.scale});
 
   final double scale;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 212 * scale,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment(-0.35, 0.35),
-          end: Alignment(0.35, 1.06),
-          colors: [Color(0xFF176BFF), Color(0xFF0F5AE0)],
-        ),
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24 * scale),
-          topRight: Radius.circular(24 * scale),
-        ),
-      ),
-      padding: EdgeInsets.only(
-        left: 24 * scale,
-        right: 24 * scale,
-        top: 32 * scale,
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            right: 0,
-            top: 0,
-            child: Container(
-              width: 48 * scale,
-              height: 48 * scale,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(9999),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-              ),
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Container(
+          width: 240 * scale,
+          height: 240 * scale,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              colors: [const Color(0x33176BFF), const Color(0x000F5AE0)],
+              radius: 0.9,
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: Get.back,
-                    child: Container(
-                      width: 48 * scale,
-                      height: 48 * scale,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(9999),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.3),
-                        ),
-                      ),
-                      alignment: Alignment.center,
-                      child: Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        color: Colors.white,
-                        size: 18 * scale,
-                      ),
-                    ),
-                  ),
-                  const Spacer(),
-                ],
+        ),
+        Container(
+          width: 160 * scale,
+          height: 160 * scale,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFF176BFF), Color(0xFF0F5AE0)],
+            ),
+            border: Border.all(color: Colors.white, width: 6 * scale),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0x40176BFF),
+                blurRadius: 28 * scale,
+                offset: Offset(0, 18 * scale),
               ),
-              SizedBox(height: 16 * scale),
+            ],
+          ),
+          alignment: Alignment.center,
+          child: Icon(
+            Icons.mark_email_read_rounded,
+            color: Colors.white,
+            size: 64 * scale,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _VerifyHeading extends StatelessWidget {
+  const _VerifyHeading({required this.scale});
+
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          'Entrez le code reçu par SMS',
+          textAlign: TextAlign.center,
+          style: GoogleFonts.poppins(
+            color: const Color(0xFF0B1220),
+            fontSize: 24 * scale,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        SizedBox(height: 12 * scale),
+        Text(
+          'Nous avons envoyé un code de vérification à 6 chiffres sur votre téléphone pour confirmer votre identité',
+          textAlign: TextAlign.center,
+          style: GoogleFonts.inter(
+            color: const Color(0xFF475569),
+            fontSize: 16 * scale,
+            height: 1.55,
+          ),
+        ),
+        SizedBox(height: 24 * scale),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 18 * scale, vertical: 14 * scale),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16 * scale),
+            border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
+          ),
+          child: Row(
+            children: [
               Container(
-                width: 80 * scale,
-                height: 80 * scale,
+                width: 32 * scale,
+                height: 32 * scale,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.4),
-                  ),
+                  color: const Color(0x19176BFF),
+                  borderRadius: BorderRadius.circular(9999),
+                  border: Border.all(color: const Color(0xFFE5E7EB)),
                 ),
                 alignment: Alignment.center,
+                child: Icon(
+                  Icons.phone_iphone_outlined,
+                  size: 16 * scale,
+                  color: const Color(0xFF176BFF),
+                ),
+              ),
+              SizedBox(width: 12 * scale),
+              Expanded(
                 child: Text(
-                  'S',
-                  style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontSize: 30 * scale,
-                    fontWeight: FontWeight.w700,
+                  '+33 6 ** ** ** 45',
+                  style: GoogleFonts.inter(
+                    color: const Color(0xFF0B1220),
+                    fontSize: 16 * scale,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
-              SizedBox(height: 12 * scale),
-              Text(
-                'Réinitialiser mot de passe',
-                style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontSize: 24 * scale,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              SizedBox(height: 4 * scale),
-              Text(
-                'Accédez à votre compte en toute sécurité',
-                style: GoogleFonts.inter(
-                  color: Colors.white.withValues(alpha: 0.9),
-                  fontSize: 14 * scale,
+              GestureDetector(
+                onTap: Get.find<ForgotPasswordController>().goToEmail,
+                child: Text(
+                  'Modifier',
+                  style: GoogleFonts.inter(
+                    color: const Color(0xFF176BFF),
+                    fontSize: 14 * scale,
+                    fontWeight: FontWeight.w600,
+                    decoration: TextDecoration.underline,
+                  ),
                 ),
               ),
             ],
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StepIndicator extends StatelessWidget {
-  const _StepIndicator({required this.scale});
-
-  final double scale;
-
-  @override
-  Widget build(BuildContext context) {
-    final controller = Get.find<ForgotPasswordController>();
-    controller.currentStep.value = ForgotPasswordStep.verify;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _Badge(step: 1, label: 'Email', isCompleted: true, scale: scale),
-        _StepLine(scale: scale),
-        _Badge(
-          step: 2,
-          label: 'Code',
-          isCompleted: true,
-          isActive: true,
-          scale: scale,
         ),
-        _StepLine(scale: scale),
-        _Badge(step: 3, label: 'Nouveau', isCompleted: false, scale: scale),
-      ],
-    );
-  }
-}
-
-class _Badge extends StatelessWidget {
-  const _Badge({
-    required this.step,
-    required this.label,
-    required this.scale,
-    this.isCompleted = false,
-    this.isActive = false,
-  });
-
-  final int step;
-  final String label;
-  final double scale;
-  final bool isCompleted;
-  final bool isActive;
-
-  @override
-  Widget build(BuildContext context) {
-    final Color color;
-    if (isActive) {
-      color = const Color(0xFF176BFF);
-    } else if (isCompleted) {
-      color = const Color(0xFF16A34A);
-    } else {
-      color = const Color(0xFFE2E8F0);
-    }
-
-    final textColor = isActive ? Colors.white : const Color(0xFF0B1220);
-
-    return Column(
-      children: [
+        SizedBox(height: 16 * scale),
         Container(
-          width: 32 * scale,
-          height: 32 * scale,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          alignment: Alignment.center,
-          child: Text(
-            step.toString(),
-            style: GoogleFonts.inter(
-              color: textColor,
-              fontWeight: FontWeight.bold,
-              fontSize: 14 * scale,
-            ),
+          padding: EdgeInsets.symmetric(horizontal: 24 * scale, vertical: 10 * scale),
+          decoration: BoxDecoration(
+            color: const Color(0x19F59E0B),
+            borderRadius: BorderRadius.circular(9999),
+            border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.4)),
           ),
-        ),
-        SizedBox(height: 6 * scale),
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            color: isActive ? const Color(0xFF176BFF) : const Color(0xFF475569),
-            fontSize: 12 * scale,
+          child: Obx(
+            () {
+              final seconds = Get.find<ForgotPasswordController>().resendSeconds.value;
+              final duration = Duration(seconds: seconds);
+              final minutesStr = duration.inMinutes.remainder(60).toString().padLeft(1, '0');
+              final secondsStr = (duration.inSeconds % 60).toString().padLeft(2, '0');
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.timer_outlined, size: 16 * scale, color: const Color(0xFFF59E0B)),
+                  SizedBox(width: 8 * scale),
+                  Text(
+                    'Le code expire dans',
+                    style: GoogleFonts.inter(
+                      color: const Color(0xFFF59E0B),
+                      fontSize: 14 * scale,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(width: 8 * scale),
+                  Text(
+                    '$minutesStr:$secondsStr',
+                    style: GoogleFonts.inter(
+                      color: const Color(0xFFF59E0B),
+                      fontSize: 14 * scale,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ],
@@ -283,322 +354,64 @@ class _Badge extends StatelessWidget {
   }
 }
 
-class _StepLine extends StatelessWidget {
-  const _StepLine({required this.scale});
+class _PhoneSummary extends StatelessWidget {
+  const _PhoneSummary({required this.scale});
 
   final double scale;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 48 * scale,
-      height: 2,
-      margin: EdgeInsets.symmetric(horizontal: 8 * scale),
-      color: const Color(0xFFE2E8F0),
-    );
-  }
-}
-
-class _InstructionCard extends StatelessWidget {
-  const _InstructionCard({required this.scale});
-
-  final double scale;
-
-  @override
-  Widget build(BuildContext context) {
-    final controller = Get.find<ForgotPasswordController>();
-    return Container(
-      padding: EdgeInsets.all(24 * scale),
+      padding: EdgeInsets.symmetric(horizontal: 20 * scale, vertical: 14 * scale),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16 * scale),
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Text(
-            'Vérifiez votre boîte mail',
-            style: GoogleFonts.poppins(
-              color: const Color(0xFF0B1220),
-              fontSize: 20 * scale,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          SizedBox(height: 12 * scale),
-          Text(
-            'Nous avons envoyé un code de confirmation à l\'adresse suivante :',
-            style: GoogleFonts.inter(
-              color: const Color(0xFF475569),
-              fontSize: 14 * scale,
-              height: 1.5,
-            ),
-          ),
-          SizedBox(height: 12 * scale),
           Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: 16 * scale,
-              vertical: 14 * scale,
-            ),
+            width: 32 * scale,
+            height: 32 * scale,
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(12 * scale),
-              border: Border.all(color: const Color(0xFF176BFF), width: 1.5),
+              color: const Color(0x19F59E0B),
+              borderRadius: BorderRadius.circular(9999),
+              border: Border.all(color: const Color(0xFFE5E7EB)),
             ),
+            alignment: Alignment.center,
+            child: Icon(Icons.sms_outlined, size: 16 * scale, color: const Color(0xFFF59E0B)),
+          ),
+          SizedBox(width: 12 * scale),
+          Expanded(
             child: Text(
-              controller.emailController.text.isEmpty
-                  ? 'votre.email@exemple.com'
-                  : controller.emailController.text,
+              '+33 6 ** ** ** 45',
               style: GoogleFonts.inter(
-                color: const Color(0xFF176BFF),
+                color: const Color(0xFF0B1220),
                 fontSize: 16 * scale,
                 fontWeight: FontWeight.w600,
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CodeForm extends StatelessWidget {
-  const _CodeForm({required this.scale});
-
-  final double scale;
-
-  @override
-  Widget build(BuildContext context) {
-    final controller = Get.find<ForgotPasswordController>();
-    return Container(
-      padding: EdgeInsets.all(24 * scale),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16 * scale),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Code de vérification',
-            style: GoogleFonts.inter(
-              color: const Color(0xFF0B1220),
-              fontSize: 16 * scale,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          SizedBox(height: 16 * scale),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(
-              controller.codeControllers.length,
-              (index) => SizedBox(
-                width: 40 * scale,
-                child: TextField(
-                  controller: controller.codeControllers[index],
-                  keyboardType: TextInputType.number,
-                  textAlign: TextAlign.center,
-                  maxLength: 1,
-                  decoration: InputDecoration(
-                    counterText: '',
-                    filled: true,
-                    fillColor: const Color(0xFFF8FAFC),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12 * scale),
-                      borderSide: const BorderSide(
-                        color: Color(0xFFE2E8F0),
-                        width: 2,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          SizedBox(height: 12 * scale),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Code valable 10 minutes',
-                style: GoogleFonts.inter(
-                  color: const Color(0xFF475569),
-                  fontSize: 13 * scale,
-                ),
-              ),
-              TextButton(
-                onPressed: controller.resendCode,
-                child: Text(
-                  'Renvoyer',
-                  style: GoogleFonts.inter(
-                    color: const Color(0xFF176BFF),
-                    fontSize: 13 * scale,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 24 * scale),
-          Text(
-            'Nouveau mot de passe',
-            style: GoogleFonts.inter(
-              color: const Color(0xFF0B1220),
-              fontSize: 16 * scale,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          SizedBox(height: 12 * scale),
-          Obx(
-            () => _PasswordField(
-              scale: scale,
-              controller: controller.newPasswordController,
-              hint: 'Mot de passe sécurisé',
-              obscureText: controller.obscureNewPassword.value,
-              onToggle: controller.toggleNewPasswordVisibility,
-            ),
-          ),
-          SizedBox(height: 16 * scale),
-          Text(
-            'Confirmer le mot de passe',
-            style: GoogleFonts.inter(
-              color: const Color(0xFF0B1220),
-              fontSize: 16 * scale,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          SizedBox(height: 12 * scale),
-          Obx(
-            () => _PasswordField(
-              scale: scale,
-              controller: controller.confirmPasswordController,
-              hint: 'Confirmer le mot de passe',
-              obscureText: controller.obscureConfirmPassword.value,
-              onToggle: controller.toggleConfirmPasswordVisibility,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PasswordField extends StatelessWidget {
-  const _PasswordField({
-    required this.scale,
-    required this.controller,
-    required this.hint,
-    required this.obscureText,
-    required this.onToggle,
-  });
-
-  final double scale;
-  final TextEditingController controller;
-  final String hint;
-  final bool obscureText;
-  final VoidCallback onToggle;
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      obscureText: obscureText,
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: const Color(0xFFF8FAFC),
-        hintText: hint,
-        hintStyle: GoogleFonts.inter(
-          color: const Color(0xFFADAEBC),
-          fontSize: 14 * scale,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12 * scale),
-          borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 2),
-        ),
-        suffixIcon: IconButton(
-          onPressed: onToggle,
-          icon: Icon(
-            obscureText
-                ? Icons.visibility_off_outlined
-                : Icons.visibility_outlined,
-            color: const Color(0xFF94A3B8),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ActionButtons extends StatelessWidget {
-  const _ActionButtons({required this.scale});
-
-  final double scale;
-
-  @override
-  Widget build(BuildContext context) {
-    final controller = Get.find<ForgotPasswordController>();
-    return Row(
-      children: [
-        Expanded(
-          child: GestureDetector(
-            onTap: controller.goToConfirmation,
-            child: Container(
-              height: 56 * scale,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF176BFF), Color(0xFF0F5AE0)],
-                ),
-                borderRadius: BorderRadius.circular(12 * scale),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 15 * scale,
-                    offset: Offset(0, 10 * scale),
-                  ),
-                ],
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                'Réinitialiser',
-                style: GoogleFonts.inter(
-                  color: Colors.white,
-                  fontSize: 16 * scale,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-        ),
-        SizedBox(width: 16 * scale),
-        Expanded(
-          child: OutlinedButton(
-            onPressed: controller.goToEmail,
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: Color(0xFFE2E8F0), width: 2),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12 * scale),
-              ),
-              padding: EdgeInsets.symmetric(vertical: 16 * scale),
-              backgroundColor: Colors.white,
-            ),
+          GestureDetector(
+            onTap: () => Get.find<ForgotPasswordController>().goToEmail(),
             child: Text(
-              'Annuler',
+              'Modifier',
               style: GoogleFonts.inter(
-                color: const Color(0xFF475569),
-                fontSize: 16 * scale,
-                fontWeight: FontWeight.w500,
+                color: const Color(0xFF176BFF),
+                fontSize: 14 * scale,
+                fontWeight: FontWeight.w600,
+                decoration: TextDecoration.underline,
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
 
-class _SupportPrompt extends StatelessWidget {
-  const _SupportPrompt({required this.scale});
+class _OtpInput extends StatelessWidget {
+  const _OtpInput({required this.scale});
 
   final double scale;
 
@@ -606,78 +419,484 @@ class _SupportPrompt extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.find<ForgotPasswordController>();
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Vous n\'avez pas reçu l\'email ?',
+          'Code de vérification',
+          style: GoogleFonts.inter(
+            color: const Color(0xFF0B1220),
+            fontSize: 16 * scale,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        SizedBox(height: 12 * scale),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(controller.codeControllers.length, (index) {
+            return SizedBox(
+              width: 48 * scale,
+              child: TextField(
+                controller: controller.codeControllers[index],
+                keyboardType: TextInputType.number,
+                textAlign: TextAlign.center,
+                maxLength: 1,
+                decoration: InputDecoration(
+                  counterText: '',
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12 * scale),
+                    borderSide: BorderSide(
+                      color: index == 0
+                          ? const Color(0xFF176BFF)
+                          : const Color(0xFFE2E8F0),
+                      width: 2,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }),
+        ),
+      ],
+    );
+  }
+}
+
+class _ResendHelp extends StatelessWidget {
+  const _ResendHelp({required this.scale});
+
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          "Vous n'avez pas reçu le code ?",
+          style: GoogleFonts.inter(
+            color: const Color(0xFF475569),
+            fontSize: 14 * scale,
+          ),
+        ),
+        SizedBox(height: 8 * scale),
+        Obx(() {
+          final controller = Get.find<ForgotPasswordController>();
+          final isEnabled = controller.resendSeconds.value == 0;
+          return GestureDetector(
+            onTap: isEnabled ? controller.resendCode : null,
+            child: Text(
+              'Renvoyer le code',
+              style: GoogleFonts.inter(
+                color: const Color(0xFF176BFF).withValues(alpha: isEnabled ? 1 : 0.4),
+                fontSize: 16 * scale,
+                fontWeight: FontWeight.w600,
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+}
+
+class _VerifyButton extends StatelessWidget {
+  const _VerifyButton({required this.scale});
+
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = Get.find<ForgotPasswordController>();
+    return GestureDetector(
+      onTap: controller.verifyCode,
+      child: Container(
+        height: 60 * scale,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            colors: [Color(0xFF176BFF), Color(0xFF0F5AE0)],
+          ),
+          borderRadius: BorderRadius.circular(12 * scale),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 15 * scale,
+              offset: Offset(0, 10 * scale),
+            ),
+          ],
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          'Vérifier le code',
+          style: GoogleFonts.inter(
+            color: Colors.white,
+            fontSize: 18 * scale,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SecurityInfoCard extends StatelessWidget {
+  const _SecurityInfoCard({required this.scale});
+
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(24 * scale),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16 * scale),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 32 * scale,
+            height: 32 * scale,
+            decoration: BoxDecoration(
+              color: const Color(0x190EA5E9),
+              borderRadius: BorderRadius.circular(12 * scale),
+              border: Border.all(color: const Color(0xFFE5E7EB)),
+            ),
+            alignment: Alignment.center,
+            child: Icon(Icons.shield_outlined, size: 16 * scale, color: const Color(0xFF0EA5E9)),
+          ),
+          SizedBox(width: 16 * scale),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Sécurité renforcée',
+                  style: GoogleFonts.poppins(
+                    color: const Color(0xFF0B1220),
+                    fontSize: 18 * scale,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(height: 12 * scale),
+                Text(
+                  'Ce code à usage unique expire dans 2 minutes et garantit la sécurité de votre compte. Ne le partagez jamais.',
+                  style: GoogleFonts.inter(
+                    color: const Color(0xFF475569),
+                    fontSize: 14 * scale,
+                    height: 1.54,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HelpOptionsList extends StatelessWidget {
+  const _HelpOptionsList({required this.scale});
+
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    final options = [
+      (
+        color: const Color(0x19F59E0B),
+        icon: Icons.sms_failed_outlined,
+        title: 'Code non reçu ?',
+        subtitle: 'Vérifiez vos messages ou spam',
+      ),
+      (
+        color: const Color(0x19EF4444),
+        icon: Icons.update_outlined,
+        title: 'Code expiré ?',
+        subtitle: 'Demandez un nouveau code',
+      ),
+      (
+        color: const Color(0x190EA5E9),
+        icon: Icons.support_agent_outlined,
+        title: 'Problème technique ?',
+        subtitle: 'Contactez notre support',
+      ),
+    ];
+    final controller = Get.find<ForgotPasswordController>();
+    return Container(
+      padding: EdgeInsets.all(24 * scale),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF9FAFB),
+        borderRadius: BorderRadius.circular(16 * scale),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Besoin d'aide ?",
+            style: GoogleFonts.poppins(
+              color: const Color(0xFF0B1220),
+              fontSize: 18 * scale,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          SizedBox(height: 16 * scale),
+          ...options.map(
+            (item) => Padding(
+              padding: EdgeInsets.only(bottom: 12 * scale),
+              child: Container(
+                padding: EdgeInsets.all(16 * scale),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12 * scale),
+                  border: Border.all(color: const Color(0xFFE5E7EB)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 32 * scale,
+                      height: 32 * scale,
+                      decoration: BoxDecoration(
+                        color: item.color,
+                        borderRadius: BorderRadius.circular(9999),
+                        border: Border.all(color: const Color(0xFFE5E7EB)),
+                      ),
+                      alignment: Alignment.center,
+                      child: Icon(item.icon, size: 16 * scale, color: const Color(0xFF0B1220)),
+                    ),
+                    SizedBox(width: 12 * scale),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.title,
+                            style: GoogleFonts.inter(
+                              color: const Color(0xFF0B1220),
+                              fontSize: 14 * scale,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          SizedBox(height: 6 * scale),
+                          Text(
+                            item.subtitle,
+                            style: GoogleFonts.inter(
+                              color: const Color(0xFF475569),
+                              fontSize: 12 * scale,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.chevron_right, size: 20 * scale, color: const Color(0xFF94A3B8)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: controller.contactSupport,
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: 16 * scale),
+              alignment: Alignment.center,
+              child: Text(
+                'Contactez le support',
+                style: GoogleFonts.inter(
+                  color: const Color(0xFF176BFF),
+                  fontSize: 14 * scale,
+                  fontWeight: FontWeight.w600,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SocialConnect extends StatelessWidget {
+  const _SocialConnect({required this.scale});
+
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          'Ou connectez-vous avec',
+          style: GoogleFonts.inter(
+            color: const Color(0xFF475569),
+            fontSize: 14 * scale,
+          ),
+        ),
+        SizedBox(height: 16 * scale),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () {},
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Color(0xFFE2E8F0)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12 * scale),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 14 * scale),
+                  backgroundColor: Colors.white,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.g_mobiledata_rounded, size: 20 * scale, color: const Color(0xFF0B1220)),
+                    SizedBox(width: 12 * scale),
+                    Text(
+                      'Google',
+                      style: GoogleFonts.inter(
+                        color: const Color(0xFF0B1220),
+                        fontSize: 14 * scale,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(width: 16 * scale),
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () {},
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Color(0xFFE2E8F0)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12 * scale),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 14 * scale),
+                  backgroundColor: Colors.white,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.apple, size: 20 * scale, color: const Color(0xFF0B1220)),
+                    SizedBox(width: 12 * scale),
+                    Text(
+                      'Apple',
+                      style: GoogleFonts.inter(
+                        color: const Color(0xFF0B1220),
+                        fontSize: 14 * scale,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _VerifyFooter extends StatelessWidget {
+  const _VerifyFooter({required this.scale});
+
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          'En continuant, vous acceptez nos',
           textAlign: TextAlign.center,
           style: GoogleFonts.inter(
             color: const Color(0xFF475569),
             fontSize: 12 * scale,
           ),
         ),
-        SizedBox(height: 8 * scale),
-        GestureDetector(
-          onTap: controller.contactSupport,
-          child: Text(
-            'Contactez le support',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.inter(
-              color: const Color(0xFF176BFF),
-              fontSize: 12 * scale,
-              fontWeight: FontWeight.w600,
-              decoration: TextDecoration.underline,
+        SizedBox(height: 12 * scale),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _FooterLinkButton(
+              label: 'Conditions d\'utilisation',
+              onTap: () {},
+              scale: scale,
             ),
-          ),
+            SizedBox(width: 16 * scale),
+            _FooterLinkButton(
+              label: 'Politique de confidentialité',
+              onTap: () {},
+              scale: scale,
+            ),
+          ],
         ),
       ],
     );
   }
 }
 
-class _FooterBar extends StatelessWidget {
-  const _FooterBar({required this.scale});
+class _FooterLinkButton extends StatelessWidget {
+  const _FooterLinkButton({required this.label, required this.onTap, required this.scale});
 
+  final String label;
+  final VoidCallback onTap;
   final double scale;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 65 * scale,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16 * scale),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+    return GestureDetector(
+      onTap: onTap,
+      child: Text(
+        label,
+        style: GoogleFonts.inter(
+          color: const Color(0xFF176BFF),
+          fontSize: 12 * scale,
+          fontWeight: FontWeight.w600,
+          decoration: TextDecoration.underline,
+        ),
       ),
-      padding: EdgeInsets.all(16 * scale),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 8 * scale,
-            height: 8 * scale,
-            decoration: const BoxDecoration(
-              color: Color(0xFF176BFF),
-              shape: BoxShape.circle,
+    );
+  }
+}
+
+class _CircleButton extends StatelessWidget {
+  const _CircleButton({required this.icon, required this.onTap, required this.scale});
+
+  final IconData icon;
+  final VoidCallback onTap;
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40 * scale,
+        height: 40 * scale,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF3F4F6),
+          borderRadius: BorderRadius.circular(12 * scale),
+          border: Border.all(color: const Color(0xFFE5E7EB)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 6 * scale,
+              offset: Offset(0, 3 * scale),
             ),
-          ),
-          SizedBox(width: 12 * scale),
-          Text(
-            'Sécurisé par Sportify',
-            style: GoogleFonts.inter(
-              color: const Color(0xFF475569),
-              fontSize: 12 * scale,
-            ),
-          ),
-          SizedBox(width: 12 * scale),
-          Container(
-            width: 8 * scale,
-            height: 8 * scale,
-            decoration: const BoxDecoration(
-              color: Color(0xFFFFB800),
-              shape: BoxShape.circle,
-            ),
-          ),
-        ],
+          ],
+        ),
+        alignment: Alignment.center,
+        child: Icon(icon, size: 18 * scale, color: const Color(0xFF0B1220)),
       ),
     );
   }

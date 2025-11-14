@@ -17,6 +17,11 @@ class AuthService {
             throw (0, http_errors_1.default)(409, 'Email already registered');
         }
         const passwordHash = await bcrypt_1.default.hash(data.password, 10);
+        // Parse dateOfBirth if provided
+        let dateOfBirth;
+        if (data.dateOfBirth) {
+            dateOfBirth = new Date(data.dateOfBirth);
+        }
         const user = await prisma_1.prisma.user.create({
             data: {
                 email: data.email,
@@ -25,6 +30,9 @@ class AuthService {
                 role: data.role ?? 'USER',
                 firstName: data.firstName,
                 lastName: data.lastName,
+                dateOfBirth,
+                gender: data.gender,
+                city: data.city,
             },
         });
         return this.generateTokens(user);

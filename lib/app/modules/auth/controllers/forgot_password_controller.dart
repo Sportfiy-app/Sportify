@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -13,6 +15,15 @@ class ForgotPasswordController extends GetxController {
   final Rx<ForgotPasswordStep> currentStep = ForgotPasswordStep.email.obs;
   final RxBool obscureNewPassword = true.obs;
   final RxBool obscureConfirmPassword = true.obs;
+  final RxInt resendSeconds = 120.obs;
+
+  Timer? _resendTimer;
+
+  @override
+  void onInit() {
+    super.onInit();
+    _startTimer();
+  }
 
   @override
   void onClose() {
@@ -22,12 +33,26 @@ class ForgotPasswordController extends GetxController {
     for (final controller in codeControllers) {
       controller.dispose();
     }
+    _resendTimer?.cancel();
     super.onClose();
+  }
+
+  void _startTimer() {
+    resendSeconds.value = 120;
+    _resendTimer?.cancel();
+    _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (resendSeconds.value > 0) {
+        resendSeconds.value--;
+      } else {
+        timer.cancel();
+      }
+    });
   }
 
   void goToVerify() {
     currentStep.value = ForgotPasswordStep.verify;
     Get.toNamed(Routes.forgotPasswordVerify);
+    _startTimer();
   }
 
   void goToEmail() {
@@ -41,10 +66,16 @@ class ForgotPasswordController extends GetxController {
   }
 
   void resendCode() {
+    _startTimer();
     Get.snackbar(
       'Code envoyé',
       'Un nouveau code de vérification vient d\'être envoyé.',
     );
+  }
+
+  void verifyCode() {
+    Get.snackbar('Succès', 'Code vérifié avec succès !');
+    goToConfirmation();
   }
 
   void contactSupport() {

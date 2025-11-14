@@ -31,3 +31,6 @@ export function createApp() {
   return app;
 }
 
+// Export app instance for testing
+export const app = createApp();
+

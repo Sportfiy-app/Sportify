@@ -26,6 +26,25 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum EventStatus {
+  UPCOMING
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum ParticipationStatus {
+  JOINED
+  WAITING_LIST
+  LEFT
+}
+
+enum PostType {
+  TEXT
+  IMAGE
+  EVENT
+}
+
 model User {
   id            String          @id @default(cuid())
   email         String          @unique
@@ -35,11 +54,27 @@ model User {
   role          Role            @default(USER)
   firstName     String?
   lastName      String?
+  avatarUrl     String?
+  dateOfBirth   DateTime?
+  gender        String?
+  city          String?
+  emailVerified Boolean         @default(false)
+  phoneVerified Boolean         @default(false)
+  emailVerificationToken String?
+  phoneVerificationCode String?
+  phoneVerificationExpires DateTime?
   bookings      Booking[]
   payments      Payment[]
   clubsManaged  Club[]          @relation("ClubManagers")
   reviews       Review[]
   notifications Notification[]
+  eventsCreated Event[]         @relation("EventOrganizer")
+  eventParticipations EventParticipation[]
+  posts         Post[]
+  postLikes     PostLike[]
+  postComments  PostComment[]
+  userSports    UserSport[]
+  subscription  Subscription?
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 }
@@ -102,5 +137,129 @@ model Notification {
   user      User     @relation(fields: [userId], references: [id])
   userId    String
   createdAt DateTime @default(now())
+}
+
+model Event {
+  id              String              @id @default(cuid())
+  title           String
+  description     String
+  sport           String
+  location        String
+  address         String?
+  latitude        Float?
+  longitude       Float?
+  date            DateTime
+  time            String              // Format: "HH:mm"
+  organizer       User                @relation("EventOrganizer", fields: [organizerId], references: [id])
+  organizerId     String
+  minParticipants Int                 @default(2)
+  maxParticipants Int                 @default(10)
+  currentParticipants Int             @default(0)
+  status          EventStatus         @default(UPCOMING)
+  isPublic        Boolean             @default(true)
+  price           Float?
+  priceCurrency   String              @default("EUR")
+  difficultyLevel String?
+  tags            String[]            @default([])
+  imageUrl        String?
+  participations  EventParticipation[]
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+}
+
+model EventParticipation {
+  id        String              @id @default(cuid())
+  event     Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId   String
+  user      User                @relation(fields: [userId], references: [id])
+  userId    String
+  status    ParticipationStatus  @default(JOINED)
+  position  Int?                // Position in waiting list (null if joined)
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  @@unique([eventId, userId])
+  @@index([eventId])
+  @@index([userId])
+}
+
+model Post {
+  id          String        @id @default(cuid())
+  author      User          @relation(fields: [authorId], references: [id])
+  authorId    String
+  type        PostType      @default(TEXT)
+  content     String
+  imageUrl    String?
+  sport       String?
+  location    String?
+  latitude    Float?
+  longitude   Float?
+  distance    Float?        // Distance from user in km
+  eventId     String?       // If post is related to an event
+  likes       PostLike[]
+  comments    PostComment[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([authorId])
+  @@index([sport])
+  @@index([createdAt])
+}
+
+model PostLike {
+  id        String   @id @default(cuid())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  createdAt DateTime  @default(now())
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+}
+
+model PostComment {
+  id        String   @id @default(cuid())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([postId])
+  @@index([userId])
+}
+
+model UserSport {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  sport     String
+  level     String?
+  ranking   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, sport])
+  @@index([userId])
+}
+
+model Subscription {
+  id            String    @id @default(cuid())
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String    @unique
+  plan          String    // 'monthly', 'annual'
+  status        String    @default("active") // 'active', 'cancelled', 'expired'
+  stripeId      String?   @unique
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  cancelAtPeriodEnd  Boolean @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([status])
 }
 

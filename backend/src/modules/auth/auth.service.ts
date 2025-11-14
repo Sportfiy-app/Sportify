@@ -16,6 +16,13 @@ export class AuthService {
     }
 
     const passwordHash = await bcrypt.hash(data.password, 10);
+    
+    // Parse dateOfBirth if provided
+    let dateOfBirth: Date | undefined;
+    if (data.dateOfBirth) {
+      dateOfBirth = new Date(data.dateOfBirth);
+    }
+    
     const user = await prisma.user.create({
       data: {
         email: data.email,
@@ -24,6 +31,9 @@ export class AuthService {
         role: data.role ?? 'USER',
         firstName: data.firstName,
         lastName: data.lastName,
+        dateOfBirth,
+        gender: data.gender,
+        city: data.city,
       },
     });
 

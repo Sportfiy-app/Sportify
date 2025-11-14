@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -12,31 +12,22 @@ class LoginEmailView extends GetView<LoginController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF7FAFF),
       body: LayoutBuilder(
         builder: (context, constraints) {
           const baseWidth = 375.0;
-          const baseHeight = 2339.0;
-
+          final size = MediaQuery.of(context).size;
           final maxWidth =
               constraints.maxWidth.isFinite
                   ? constraints.maxWidth
-                  : MediaQuery.of(context).size.width;
-          final maxHeight =
-              constraints.maxHeight.isFinite
-                  ? constraints.maxHeight
-                  : MediaQuery.of(context).size.height;
+                  : size.width;
+          final scale = (maxWidth / baseWidth).clamp(0.72, 1.15);
 
-          final scaleX = maxWidth / baseWidth;
-          final scaleY = maxHeight / baseHeight;
-          final scale = math.min(scaleX, scaleY).clamp(0.55, 1.2);
-
-          return Container(
-            color: const Color(0xFFF8FAFC),
-            child: Center(
-              child: SizedBox(
-                width: baseWidth * scale,
-                child: _LoginEmailContent(scale: scale),
-              ),
+          return Align(
+            alignment: Alignment.topCenter,
+            child: SizedBox(
+              width: maxWidth,
+              child: _LoginEmailContent(scale: scale),
             ),
           );
         },
@@ -54,136 +45,106 @@ class _LoginEmailContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFFE5E7EB)),
-      ),
-      child: Column(
-        children: [
-          _LoginTopBar(scale: scale),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: s(24)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(height: s(32)),
-                  _HeroSection(scale: scale),
-                  SizedBox(height: s(32)),
-                  _LoginToggle(scale: scale, mode: LoginMode.email),
-                  SizedBox(height: s(24)),
-                  _EmailForm(scale: scale),
-                  SizedBox(height: s(32)),
-                  _PrimaryButton(
-                    scale: scale,
-                    label: 'Connexion',
-                    icon: Icons.login_rounded,
-                    onTap: Get.find<LoginController>().submitEmailLogin,
-                  ),
-                  SizedBox(height: s(32)),
-                  _DividerWithLabel(scale: scale, label: 'ou'),
-                  SizedBox(height: s(24)),
-                  _SocialButtons(scale: scale),
-                  SizedBox(height: s(32)),
-                  _QuickLoginSection(scale: scale),
-                  SizedBox(height: s(32)),
-                  _SecurityCard(scale: scale),
-                  SizedBox(height: s(32)),
-                  _HelpSection(scale: scale),
-                  SizedBox(height: s(32)),
-                  _RecentLogins(scale: scale),
-                  SizedBox(height: s(32)),
-                  _NewOnboardingCard(scale: scale),
-                  SizedBox(height: s(32)),
-                ],
-              ),
-            ),
-          ),
-          _Footer(scale: scale),
-        ],
-      ),
-    );
-  }
-}
-
-class _LoginTopBar extends StatelessWidget {
-  const _LoginTopBar({required this.scale});
-
-  final double scale;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 73 * scale,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
-      ),
-      padding: EdgeInsets.symmetric(
-        horizontal: 16 * scale,
-        vertical: 16 * scale,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _CircleButton(
-            scale: scale,
-            icon: Icons.arrow_back_ios_new_rounded,
-            background: const Color(0xFFF3F4F6),
-            onTap: Get.back,
-          ),
-          Container(
-            width: 40 * scale,
-            height: 40 * scale,
-            decoration: BoxDecoration(
-              color: const Color(0xFF176BFF),
-              shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFE5E7EB)),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              'S',
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-                fontSize: 20 * scale,
-              ),
-            ),
-          ),
-          SizedBox(width: 40 * scale),
-        ],
-      ),
-    );
-  }
-}
-
-class _CircleButton extends StatelessWidget {
-  const _CircleButton({
-    required this.scale,
-    required this.icon,
-    required this.background,
-    this.onTap,
-  });
-
-  final double scale;
-  final IconData icon;
-  final Color background;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
+    final controller = Get.find<LoginController>();
+    return SafeArea(
+      bottom: false,
       child: Container(
-        width: 40 * scale,
-        height: 40 * scale,
-        decoration: BoxDecoration(
-          color: background,
-          shape: BoxShape.circle,
-          border: Border.all(color: const Color(0xFFE5E7EB)),
+        decoration: const BoxDecoration(
+          color: Color(0xFFF7FAFF),
+          border: Border(
+            left: BorderSide(color: Color(0xFFE5E7EB)),
+            right: BorderSide(color: Color(0xFFE5E7EB)),
+          ),
         ),
-        alignment: Alignment.center,
-        child: Icon(icon, size: 18 * scale, color: const Color(0xFF0B1220)),
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: s(24)),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SizedBox(height: s(20)),
+                          _HeroSection(scale: scale),
+                          SizedBox(height: s(20)),
+                          _LoginModeToggle(scale: scale),
+                          SizedBox(height: s(24)),
+                          Obx(() {
+                            final mode = controller.loginMode.value;
+                            final isLoading = controller.isSubmitting.value;
+                            return Column(
+                              children: [
+                                AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 320),
+                                  switchInCurve: Curves.easeOutCubic,
+                                  switchOutCurve: Curves.easeInCubic,
+                                  transitionBuilder: (child, animation) {
+                                    final slideAnimation = Tween<Offset>(
+                                      begin: const Offset(0.08, 0),
+                                      end: Offset.zero,
+                                    ).animate(animation);
+                                    return FadeTransition(
+                                      opacity: animation,
+                                      child: SlideTransition(
+                                        position: slideAnimation,
+                                        child: child,
+                                      ),
+                                    );
+                                  },
+                                  child:
+                                      mode == LoginMode.email
+                                          ? _EmailModeSection(
+                                              key: const ValueKey(LoginMode.email),
+                                              scale: scale,
+                                            )
+                                          : _PhoneModeSection(
+                                              key: const ValueKey(LoginMode.phone),
+                                              scale: scale,
+                                            ),
+                                ),
+                                SizedBox(height: s(32)),
+                                _PrimaryButton(
+                                  scale: scale,
+                                  label: isLoading ? 'Connexion en cours...' : 'Connexion',
+                                  icon: Icons.login_rounded,
+                                  onTap:
+                                      mode == LoginMode.email
+                                          ? controller.submitEmailLogin
+                                          : () async => controller.submitPhoneLogin(),
+                                  isLoading: isLoading,
+                                  enabled: !isLoading,
+                                ),
+                                SizedBox(height: s(32)),
+                                _DividerWithLabel(scale: scale, label: 'ou'),
+                                SizedBox(height: s(24)),
+                                _SocialButtons(scale: scale),
+                                SizedBox(height: s(32)),
+                                _QuickLoginSection(scale: scale),
+                                SizedBox(height: s(32)),
+                                _SecurityCard(scale: scale),
+                                SizedBox(height: s(32)),
+                                _HelpSection(scale: scale),
+                                SizedBox(height: s(32)),
+                                _RecentLogins(scale: scale),
+                                SizedBox(height: s(32)),
+                                _NewOnboardingCard(scale: scale),
+                                SizedBox(height: s(32)),
+                              ],
+                            );
+                          }),
+                        ],
+                      ),
+                    ),
+                    _Footer(scale: scale),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -198,49 +159,77 @@ class _HeroSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
-          width: 80 * scale,
-          height: 80 * scale,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment(-0.35, 0.35),
-              end: Alignment(0.35, 1.06),
-              colors: [Color(0xFF176BFF), Color(0xFF0F5AE0)],
-            ),
-            shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFFE5E7EB)),
-            boxShadow: [
-              BoxShadow(color: const Color(0x51176BFF), blurRadius: 6 * scale),
-            ],
-          ),
+        Stack(
           alignment: Alignment.center,
-          child: Text(
-            'S',
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontSize: 30 * scale,
-              fontWeight: FontWeight.w700,
+          children: [
+            Container(
+              width: 140 * scale,
+              height: 140 * scale,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [Color(0x1A176BFF), Color(0x00176BFF)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
             ),
-          ),
+            Container(
+              width: 90 * scale,
+              height: 90 * scale,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment(-0.35, 0.35),
+                  end: Alignment(0.35, 1.06),
+                  colors: [Color(0xFF176BFF), Color(0xFF0F5AE0)],
+                ),
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFE5E7EB)),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0x4D176BFF),
+                    blurRadius: 30 * scale,
+                    offset: Offset(0, 20 * scale),
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 9 * scale,
+                    offset: Offset(0, 3 * scale),
+                  ),
+                ],
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                'S',
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontSize: 30 * scale,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
         ),
-        SizedBox(height: 24 * scale),
+        SizedBox(height: 20 * scale),
         Text(
           'Connectez-vous',
           textAlign: TextAlign.center,
           style: GoogleFonts.poppins(
             color: const Color(0xFF0B1220),
-            fontSize: 30 * scale,
+            fontSize: 26 * scale,
             fontWeight: FontWeight.w700,
+            height: 1.2,
           ),
         ),
-        SizedBox(height: 12 * scale),
+        SizedBox(height: 10 * scale),
         Text(
           'Retrouvez votre communauté sportive',
           textAlign: TextAlign.center,
           style: GoogleFonts.inter(
             color: const Color(0xFF475569),
-            fontSize: 18 * scale,
-            fontWeight: FontWeight.w400,
+            fontSize: 15 * scale,
+            fontWeight: FontWeight.w500,
+            height: 1.55,
           ),
         ),
       ],
@@ -248,36 +237,88 @@ class _HeroSection extends StatelessWidget {
   }
 }
 
-class _LoginToggle extends StatelessWidget {
-  const _LoginToggle({required this.scale, required this.mode});
+class _LoginModeToggle extends StatelessWidget {
+  const _LoginModeToggle({required this.scale});
 
   final double scale;
-  final LoginMode mode;
 
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<LoginController>();
-    return Container(
-      height: 52 * scale,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF3F4F6),
-        borderRadius: BorderRadius.circular(12 * scale),
+    return Obx(
+      () => _SegmentedToggle(
+        scale: scale,
+        activeMode: controller.loginMode.value,
+        onSelect: controller.setMode,
       ),
-      child: Row(
+    );
+  }
+}
+
+class _SegmentedToggle extends StatelessWidget {
+  const _SegmentedToggle({
+    required this.scale,
+    required this.activeMode,
+    required this.onSelect,
+  });
+
+  final double scale;
+  final LoginMode activeMode;
+  final ValueChanged<LoginMode> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final double width = 236 * scale;
+    final double height = 48 * scale;
+    final double indicatorWidth = (width - 6 * scale) / 2;
+
+    return SizedBox(
+      width: width,
+      height: height,
+      child: Stack(
         children: [
-          _ToggleButton(
-            scale: scale,
-            label: 'Email',
-            icon: Icons.email_outlined,
-            isActive: mode == LoginMode.email,
-            onTap: () => controller.setMode(LoginMode.email),
+          Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0F5FF),
+              borderRadius: BorderRadius.circular(20 * scale),
+              border: Border.all(color: const Color(0xFFD6E3FF)),
+            ),
           ),
-          _ToggleButton(
-            scale: scale,
-            label: 'Téléphone',
-            icon: Icons.phone_iphone_outlined,
-            isActive: mode == LoginMode.phone,
-            onTap: () => controller.setMode(LoginMode.phone),
+          AnimatedAlign(
+            alignment:
+                activeMode == LoginMode.email ? Alignment.centerLeft : Alignment.centerRight,
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOut,
+            child: Container(
+              margin: EdgeInsets.all(3 * scale),
+              width: indicatorWidth,
+              height: height - 6 * scale,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16 * scale),
+                border: Border.all(color: const Color(0xFFD6E3FF)),
+              ),
+            ),
+          ),
+          Row(
+            children: [
+              _LoginModeChip(
+                scale: scale,
+                label: 'Email',
+                icon: Icons.email_outlined,
+                mode: LoginMode.email,
+                activeMode: activeMode,
+                onSelect: onSelect,
+              ),
+              _LoginModeChip(
+                scale: scale,
+                label: 'Téléphone',
+                icon: Icons.phone_iphone_outlined,
+                mode: LoginMode.phone,
+                activeMode: activeMode,
+                onSelect: onSelect,
+              ),
+            ],
           ),
         ],
       ),
@@ -285,67 +326,57 @@ class _LoginToggle extends StatelessWidget {
   }
 }
 
-class _ToggleButton extends StatelessWidget {
-  const _ToggleButton({
+class _LoginModeChip extends StatelessWidget {
+  const _LoginModeChip({
     required this.scale,
     required this.label,
     required this.icon,
-    required this.isActive,
-    required this.onTap,
+    required this.mode,
+    required this.activeMode,
+    required this.onSelect,
   });
 
   final double scale;
   final String label;
   final IconData icon;
-  final bool isActive;
-  final VoidCallback onTap;
+  final LoginMode mode;
+  final LoginMode activeMode;
+  final ValueChanged<LoginMode> onSelect;
 
   @override
   Widget build(BuildContext context) {
+    final bool isActive = mode == activeMode;
     return Expanded(
       child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          margin: EdgeInsets.all(4 * scale),
-          decoration: BoxDecoration(
-            color: isActive ? Colors.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(8 * scale),
-            boxShadow:
-                isActive
-                    ? [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.08),
-                        blurRadius: 6 * scale,
-                        offset: Offset(0, 2 * scale),
-                      ),
-                    ]
-                    : null,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 16 * scale,
-                color:
-                    isActive
-                        ? const Color(0xFF176BFF)
-                        : const Color(0xFF475569),
-              ),
-              SizedBox(width: 8 * scale),
-              Text(
-                label,
-                style: GoogleFonts.inter(
-                  fontSize: 14 * scale,
-                  fontWeight: FontWeight.w600,
-                  color:
-                      isActive
-                          ? const Color(0xFF176BFF)
-                          : const Color(0xFF475569),
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          if (!isActive) {
+            onSelect(mode);
+          }
+        },
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 6 * scale),
+          child: Center(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  size: 14 * scale,
+                  color: isActive ? const Color(0xFF176BFF) : const Color(0xFF475569),
                 ),
-              ),
-            ],
+                SizedBox(width: 5 * scale),
+                Text(
+                  label,
+                  style: GoogleFonts.inter(
+                    fontSize: 12.5 * scale,
+                    fontWeight: FontWeight.w600,
+                    color: isActive ? const Color(0xFF176BFF) : const Color(0xFF475569),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -404,6 +435,179 @@ class _EmailForm extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _PhoneForm extends StatelessWidget {
+  const _PhoneForm({required this.scale});
+
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = Get.find<LoginController>();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _FieldLabel(scale: scale, label: 'Numéro de téléphone'),
+        SizedBox(height: 12 * scale),
+        Row(
+          children: [
+            _PhoneCodeField(scale: scale, controller: controller.countryCodeController),
+            SizedBox(width: 12 * scale),
+            Expanded(
+              child: _PhoneNumberField(scale: scale, controller: controller.phoneController),
+            ),
+          ],
+        ),
+        SizedBox(height: 24 * scale),
+        _FieldLabel(scale: scale, label: 'Code de vérification'),
+        SizedBox(height: 12 * scale),
+        _OtpRow(scale: scale),
+        SizedBox(height: 12 * scale),
+        Text(
+          'Code envoyé par SMS',
+          style: GoogleFonts.inter(
+            color: const Color(0xFF475569),
+            fontSize: 14 * scale,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PhoneCodeField extends StatelessWidget {
+  const _PhoneCodeField({required this.scale, required this.controller});
+
+  final double scale;
+  final TextEditingController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 86 * scale,
+      child: _PhoneOutlinedField(
+        scale: scale,
+        controller: controller,
+        hint: '+33',
+        trailing: Icon(
+          Icons.expand_more,
+          size: 18 * scale,
+          color: const Color(0xFF94A3B8),
+        ),
+      ),
+    );
+  }
+}
+
+class _PhoneNumberField extends StatelessWidget {
+  const _PhoneNumberField({required this.scale, required this.controller});
+
+  final double scale;
+  final TextEditingController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return _PhoneOutlinedField(
+      scale: scale,
+      controller: controller,
+      hint: '03 45 67 89',
+      keyboardType: TextInputType.phone,
+    );
+  }
+}
+
+class _PhoneOutlinedField extends StatelessWidget {
+  const _PhoneOutlinedField({
+    required this.scale,
+    required this.controller,
+    required this.hint,
+    this.keyboardType,
+    this.trailing,
+  });
+
+  final double scale;
+  final TextEditingController controller;
+  final String hint;
+  final TextInputType? keyboardType;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 60 * scale,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12 * scale),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 2 * scale),
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 16 * scale),
+      alignment: Alignment.centerLeft,
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: controller,
+              keyboardType: keyboardType,
+              style: GoogleFonts.inter(
+                fontSize: 16 * scale,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF0B1220),
+              ),
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                hintText: hint,
+                hintStyle: GoogleFonts.inter(
+                  color: const Color(0xFFADAEBC),
+                  fontSize: 14 * scale,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+          if (trailing != null) trailing!,
+        ],
+      ),
+    );
+  }
+}
+
+class _OtpRow extends StatelessWidget {
+  const _OtpRow({required this.scale});
+
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = Get.find<LoginController>();
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: List.generate(controller.otpControllers.length, (index) {
+        return SizedBox(
+          width: 46 * scale,
+          child: TextField(
+            controller: controller.otpControllers[index],
+            keyboardType: TextInputType.number,
+            textAlign: TextAlign.center,
+            maxLength: 1,
+            decoration: InputDecoration(
+              counterText: '',
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12 * scale),
+                borderSide: const BorderSide(
+                  color: Color(0xFFE2E8F0),
+                  width: 2,
+                ),
+              ),
+            ),
+          ),
+        );
+      }),
     );
   }
 }
@@ -522,52 +726,76 @@ class _PrimaryButton extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.onTap,
+    this.isLoading = false,
+    this.enabled = true,
   });
 
   final double scale;
   final String label;
   final IconData icon;
-  final VoidCallback onTap;
+  final Future<void> Function()? onTap;
+  final bool isLoading;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 56 * scale,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF176BFF), Color(0xFF0F5AE0)],
-          ),
-          borderRadius: BorderRadius.circular(12 * scale),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 15 * scale,
-              offset: Offset(0, 10 * scale),
+      onTap: () {
+        if (!enabled || isLoading || onTap == null) {
+          return;
+        }
+        unawaited(onTap!());
+      },
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 150),
+        opacity: enabled ? 1 : 0.6,
+        child: Container(
+          height: 56 * scale,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF176BFF), Color(0xFF0F5AE0)],
             ),
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 6 * scale,
-              offset: Offset(0, 4 * scale),
-            ),
-          ],
-        ),
-        alignment: Alignment.center,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: Colors.white, size: 18 * scale),
-            SizedBox(width: 12 * scale),
-            Text(
-              label,
-              style: GoogleFonts.inter(
-                color: Colors.white,
-                fontSize: 16 * scale,
-                fontWeight: FontWeight.w600,
+            borderRadius: BorderRadius.circular(12 * scale),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 15 * scale,
+                offset: Offset(0, 10 * scale),
               ),
-            ),
-          ],
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 6 * scale,
+                offset: Offset(0, 4 * scale),
+              ),
+            ],
+          ),
+          alignment: Alignment.center,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isLoading)
+                SizedBox(
+                  width: 18 * scale,
+                  height: 18 * scale,
+                  child: const CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              else
+                Icon(icon, color: Colors.white, size: 18 * scale),
+              SizedBox(width: 12 * scale),
+              Text(
+                label,
+                style: GoogleFonts.inter(
+                  color: Colors.white,
+                  fontSize: 16 * scale,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1091,21 +1319,25 @@ class _Footer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 121 * scale,
+      width: double.infinity,
       decoration: const BoxDecoration(
         color: Colors.white,
         border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
       ),
       padding: EdgeInsets.symmetric(
         horizontal: 24 * scale,
-        vertical: 16 * scale,
+        vertical: 18 * scale,
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 24 * scale,
+            runSpacing: 8 * scale,
             children: [
-              _FooterLink(scale: scale, label: 'Conditions\nd\'utilisation'),
+              _FooterLink(scale: scale, label: 'Conditions'),
               _FooterLink(scale: scale, label: 'Confidentialité'),
               _FooterLink(scale: scale, label: 'Support'),
             ],
@@ -1133,16 +1365,35 @@ class _FooterLink extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 100 * scale,
-      child: Text(
-        label,
-        textAlign: TextAlign.center,
-        style: GoogleFonts.inter(
-          color: const Color(0xFF475569),
-          fontSize: 14 * scale,
-        ),
+    return Text(
+      label,
+      textAlign: TextAlign.center,
+      style: GoogleFonts.inter(
+        color: const Color(0xFF475569),
+        fontSize: 14 * scale,
       ),
     );
+  }
+}
+
+class _EmailModeSection extends StatelessWidget {
+  const _EmailModeSection({required this.scale, super.key});
+
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    return _EmailForm(scale: scale);
+  }
+}
+
+class _PhoneModeSection extends StatelessWidget {
+  const _PhoneModeSection({required this.scale, super.key});
+
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    return _PhoneForm(scale: scale);
   }
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
 
+import 'app/core/bindings/app_binding.dart';
 import 'app/routes/app_pages.dart';
 import 'core/theme/app_theme.dart';
 
@@ -20,6 +22,17 @@ class SportifyApp extends StatelessWidget {
       darkTheme: AppTheme.dark,
       initialRoute: AppPages.initial,
       getPages: AppPages.routes,
+      initialBinding: AppBinding(),
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('fr', 'FR'),
+        Locale('en', 'US'),
+      ],
+      locale: const Locale('fr', 'FR'),
     );
   }
 }

@@ -66,96 +66,12 @@ class _SplashArtboard extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          _BackgroundShapes(scale: scale),
           _LogoSection(scale: scale),
           _TitleSection(scale: scale),
           _LoadingSection(scale: scale),
           _QuickActions(scale: scale),
           _VersionBadge(scale: scale),
         ],
-      ),
-    );
-  }
-}
-
-class _BackgroundShapes extends StatelessWidget {
-  const _BackgroundShapes({required this.scale});
-
-  final double scale;
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        _circle(
-          left: 31.56,
-          top: 83.55,
-          size: 64.89,
-          color: Colors.white.withValues(alpha: 0.1),
-        ),
-        _circle(
-          left: 278.43,
-          top: 120.49,
-          size: 49.15,
-          color: const Color(0xFFFFB800).withValues(alpha: 0.2),
-        ),
-        _circle(
-          left: 63.49,
-          top: 246.17,
-          size: 33.02,
-          color: Colors.white.withValues(alpha: 0.15),
-        ),
-        _circle(
-          left: 262.91,
-          top: 571.30,
-          size: 80.17,
-          color: Colors.white.withValues(alpha: 0.05),
-        ),
-        _circle(
-          left: 47.06,
-          top: 489.23,
-          size: 57.89,
-          color: const Color(0xFFFFB800).withValues(alpha: 0.1),
-        ),
-        _circle(
-          left: 270.82,
-          top: 171.56,
-          size: 24.35,
-          color: Colors.white.withValues(alpha: 0.2),
-          borderOpacity: 0.3,
-        ),
-        _circle(
-          left: 79.77,
-          top: 579.25,
-          size: 16.47,
-          color: const Color(0xFFFFB800).withValues(alpha: 0.25),
-          borderOpacity: 0.5,
-        ),
-      ],
-    );
-  }
-
-  Positioned _circle({
-    required double left,
-    required double top,
-    required double size,
-    required Color color,
-    double borderOpacity = 0.2,
-  }) {
-    return Positioned(
-      left: left * scale,
-      top: top * scale,
-      width: size * scale,
-      height: size * scale,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: color,
-          border: Border.all(
-            color: Colors.white.withValues(alpha: borderOpacity),
-            width: 1.5 * scale,
-          ),
-        ),
       ),
     );
   }
@@ -308,52 +224,18 @@ class _LoadingSection extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(
-            width: 96 * scale,
-            height: 84 * scale,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  height: 48 * scale,
-                  width: 48 * scale,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            width: 4 * scale,
-                            color: Colors.white.withValues(alpha: 0.3),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        width: 67 * scale,
-                        height: 67 * scale,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            width: 4 * scale,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 16 * scale),
-                Text(
-                  'Chargement...',
-                  style: GoogleFonts.inter(
-                    color: Colors.white.withValues(alpha: 0.8),
-                    fontSize: 14 * scale,
-                    fontWeight: FontWeight.w500,
-                    height: 1.43,
-                  ),
-                ),
-              ],
+          CustomPaint(
+            size: Size.square(86 * scale),
+            painter: _LoadingRingPainter(scale: scale),
+          ),
+          SizedBox(height: 18 * scale),
+          Text(
+            'Chargement...',
+            style: GoogleFonts.inter(
+              color: Colors.white.withValues(alpha: 0.85),
+              fontSize: 14 * scale,
+              fontWeight: FontWeight.w600,
+              height: 1.43,
             ),
           ),
         ],
@@ -419,20 +301,34 @@ class _QuickAction extends StatelessWidget {
           height: 40 * scale,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.white.withValues(alpha: 0.2),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+            gradient: const LinearGradient(
+              colors: [Color(0xFFE6F0FF), Color(0xFFFFFFFF)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.35),
+              width: 1.2 * scale,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.12),
+                blurRadius: 20 * scale,
+                offset: Offset(0, 12 * scale),
+              ),
+            ],
           ),
           child: Icon(
             icon,
             size: 20 * scale,
-            color: Colors.white.withValues(alpha: 0.85),
+            color: const Color(0xFF176BFF),
           ),
         ),
         SizedBox(height: 12 * scale),
         Text(
           label,
           style: GoogleFonts.inter(
-            color: Colors.white.withValues(alpha: 0.7),
+            color: Colors.white.withValues(alpha: 0.85),
             fontSize: 12 * scale,
             fontWeight: FontWeight.w400,
             height: 1.33,
@@ -455,7 +351,7 @@ class _VersionBadge extends StatelessWidget {
       child: Text(
         'Version 1.0.0',
         style: GoogleFonts.inter(
-          color: Colors.white.withValues(alpha: 0.5),
+          color: Colors.white.withValues(alpha: 0.6),
           fontSize: 12 * scale,
           fontWeight: FontWeight.w400,
           height: 1.33,
@@ -463,4 +359,61 @@ class _VersionBadge extends StatelessWidget {
       ),
     );
   }
+}
+
+class _LoadingRingPainter extends CustomPainter {
+  const _LoadingRingPainter({required this.scale});
+
+  final double scale;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final outerRadius = size.width / 2;
+    final innerRadius = outerRadius * 0.58;
+
+    final glowPaint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          Colors.white.withValues(alpha: 0.6),
+          Colors.white.withValues(alpha: 0.0),
+        ],
+      ).createShader(Rect.fromCircle(center: center, radius: outerRadius))
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 24 * scale);
+    canvas.drawCircle(center, outerRadius * 0.9, glowPaint);
+
+    final ringPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 6 * scale
+      ..shader = SweepGradient(
+        startAngle: -math.pi / 2,
+        endAngle: 1.5 * math.pi,
+        colors: [
+          Colors.white.withValues(alpha: 0.15),
+          Colors.white,
+          Colors.white.withValues(alpha: 0.15),
+        ],
+      ).createShader(Rect.fromCircle(center: center, radius: outerRadius));
+    canvas.drawCircle(center, outerRadius - 6 * scale, ringPaint);
+
+    final innerPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2 * scale
+      ..color = Colors.white.withValues(alpha: 0.25);
+    canvas.drawCircle(center, innerRadius, innerPaint);
+
+    final indicatorPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+    final indicatorAngle =
+        (DateTime.now().millisecondsSinceEpoch % 4000) / 4000 * 2 * math.pi;
+    final indicatorOffset = Offset(
+      center.dx + (outerRadius - 8 * scale) * math.cos(indicatorAngle),
+      center.dy + (outerRadius - 8 * scale) * math.sin(indicatorAngle),
+    );
+    canvas.drawCircle(indicatorOffset, 4.5 * scale, indicatorPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

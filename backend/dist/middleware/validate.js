@@ -13,7 +13,24 @@ function validateBody(schema) {
             next();
         }
         catch (error) {
-            next((0, http_errors_1.default)(400, 'Invalid request body', { cause: error }));
+            // Log validation errors for debugging
+            console.error('Validation errors:', JSON.stringify(error.errors || error, null, 2));
+            console.error('Request body:', JSON.stringify(req.body, null, 2));
+            // Format Zod errors for better error messages
+            let errorMessage = 'Invalid request body';
+            if (error.errors && Array.isArray(error.errors) && error.errors.length > 0) {
+                const firstError = error.errors[0];
+                if (firstError.path && firstError.message) {
+                    errorMessage = `${firstError.path.join('.')}: ${firstError.message}`;
+                }
+                else if (firstError.message) {
+                    errorMessage = firstError.message;
+                }
+            }
+            next((0, http_errors_1.default)(400, errorMessage, {
+                cause: error,
+                errors: error.errors || [],
+            }));
         }
     };
 }
