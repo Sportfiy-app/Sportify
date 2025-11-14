@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, FriendshipStatus } from '@prisma/client';
 import createHttpError from 'http-errors';
 
 import { prisma } from '../../db/prisma';
@@ -32,7 +32,7 @@ export class MessagesService {
           { requesterId: senderId, addresseeId: receiverId },
           { requesterId: receiverId, addresseeId: senderId },
         ],
-        status: 'ACCEPTED',
+        status: FriendshipStatus.ACCEPTED,
       },
     });
 
