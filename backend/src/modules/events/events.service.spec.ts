@@ -18,6 +18,7 @@ jest.mock('../../db/prisma', () => ({
       findUnique: jest.fn(),
       findFirst: jest.fn(),
       findMany: jest.fn(),
+      count: jest.fn(),
       delete: jest.fn(),
       updateMany: jest.fn(),
     },
@@ -134,7 +135,9 @@ describe('EventsService', () => {
 
       const result = await eventsService.joinEvent(eventId, userId);
 
-      expect(result).toHaveProperty('id');
+      expect(result).toHaveProperty('participation');
+      expect(result.participation).toHaveProperty('id');
+      expect(result.isWaitingList).toBe(false);
       expect(prisma.eventParticipation.create).toHaveBeenCalled();
       expect(prisma.event.update).toHaveBeenCalledWith({
         where: { id: eventId },
@@ -152,15 +155,24 @@ describe('EventsService', () => {
         participations: [],
       };
 
-      (prisma.event.findUnique as jest.Mock).mockResolvedValue(mockEvent);
+      (prisma.event.findUnique as jest.Mock).mockResolvedValue({
+        ...mockEvent,
+        participations: Array(22).fill({ status: ParticipationStatus.JOINED }),
+      });
       (prisma.eventParticipation.findUnique as jest.Mock).mockResolvedValue(null);
-      (prisma.eventParticipation.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.eventParticipation.count as jest.Mock).mockResolvedValue(0);
       (prisma.eventParticipation.create as jest.Mock).mockResolvedValue({
         id: 'participation-123',
         eventId,
         userId,
         status: ParticipationStatus.WAITING_LIST,
         position: 1,
+        user: {
+          id: userId,
+          firstName: 'Test',
+          lastName: 'User',
+          avatarUrl: null,
+        },
       });
 
       const result = await eventsService.joinEvent(eventId, userId);
@@ -175,7 +187,7 @@ describe('EventsService', () => {
       const eventId = 'event-123';
       const userId = 'user-456';
 
-      (prisma.eventParticipation.findFirst as jest.Mock).mockResolvedValue({
+      (prisma.eventParticipation.findUnique as jest.Mock).mockResolvedValue({
         id: 'participation-123',
         eventId,
         userId,

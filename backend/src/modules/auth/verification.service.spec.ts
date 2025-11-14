@@ -57,6 +57,12 @@ describe('VerificationService', () => {
         phoneVerificationExpires: new Date(Date.now() + 600000), // 10 minutes from now
       });
 
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+        id: userId,
+        phone,
+        phoneVerificationCode: code,
+        phoneVerificationExpires: new Date(Date.now() + 600000),
+      });
       (prisma.user.update as jest.Mock).mockResolvedValue({
         id: userId,
         phoneVerified: true,

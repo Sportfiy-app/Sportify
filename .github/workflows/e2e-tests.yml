@@ -9,7 +9,7 @@ on:
 
 env:
   NODE_VERSION: '20'
-  FLUTTER_VERSION: '3.24.0'
+  FLUTTER_VERSION: '3.27.0'
   DATABASE_URL: postgresql://sportify:sportify@localhost:5432/sportify_test
 
 jobs:

@@ -142,23 +142,32 @@ describe('PostsService', () => {
       expect(result).toHaveProperty('id');
       expect(prisma.postLike.create).toHaveBeenCalledWith({
         data: { postId, userId },
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              avatarUrl: true,
+            },
+          },
+        },
       });
     });
 
-    it('should unlike a post if already liked', async () => {
+    it('should throw error if post is already liked', async () => {
       const postId = 'post-123';
       const userId = 'user-456';
 
-      (prisma.postLike.findFirst as jest.Mock).mockResolvedValue({
+      (prisma.post.findUnique as jest.Mock).mockResolvedValue({ id: postId });
+      (prisma.postLike.findUnique as jest.Mock).mockResolvedValue({
         id: 'like-123',
         postId,
         userId,
       });
-      (prisma.postLike.delete as jest.Mock).mockResolvedValue({});
 
-      await postsService.likePost(postId, userId);
-
-      expect(prisma.postLike.delete).toHaveBeenCalled();
+      await expect(postsService.likePost(postId, userId)).rejects.toThrow('Post is already liked');
+      expect(prisma.postLike.create).not.toHaveBeenCalled();
     });
   });
 

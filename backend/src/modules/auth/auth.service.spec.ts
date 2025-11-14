@@ -1,5 +1,9 @@
 import bcrypt from 'bcrypt';
 
+// Set JWT secrets before importing modules that use them
+process.env.JWT_ACCESS_SECRET = 'test-access-secret';
+process.env.JWT_REFRESH_SECRET = 'test-refresh-secret';
+
 import { prisma } from '../../db/prisma';
 
 import { AuthService } from './auth.service';
@@ -22,9 +26,6 @@ describe('AuthService', () => {
   let authService: AuthService;
 
   beforeEach(() => {
-    // Set JWT secrets for tests
-    process.env.JWT_ACCESS_SECRET = 'test-access-secret';
-    process.env.JWT_REFRESH_SECRET = 'test-refresh-secret';
     authService = new AuthService();
     jest.clearAllMocks();
   });
