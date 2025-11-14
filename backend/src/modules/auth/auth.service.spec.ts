@@ -1,6 +1,8 @@
-import { AuthService } from './auth.service';
-import { prisma } from '../../db/prisma';
 import bcrypt from 'bcrypt';
+
+import { prisma } from '../../db/prisma';
+
+import { AuthService } from './auth.service';
 
 // Mock Prisma
 jest.mock('../../db/prisma', () => ({
@@ -20,6 +22,9 @@ describe('AuthService', () => {
   let authService: AuthService;
 
   beforeEach(() => {
+    // Set JWT secrets for tests
+    process.env.JWT_ACCESS_SECRET = 'test-access-secret';
+    process.env.JWT_REFRESH_SECRET = 'test-refresh-secret';
     authService = new AuthService();
     jest.clearAllMocks();
   });

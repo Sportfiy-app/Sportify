@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+
 import createHttpError from 'http-errors';
 import twilio from 'twilio';
 
@@ -212,7 +213,7 @@ export class VerificationService {
    */
   async sendEmailVerification(email: string, userId: string): Promise<{ token: string }> {
     const token = this.generateEmailToken();
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    // expiresAt is stored in the database but not used here
 
     await prisma.user.update({
       where: { id: userId },

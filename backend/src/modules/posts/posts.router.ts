@@ -2,6 +2,7 @@ import { Router } from 'express';
 
 import { authenticate } from '../../middleware/auth';
 import { validateBody, validateQuery } from '../../middleware/validate';
+
 import {
   createPostSchema,
   updatePostSchema,

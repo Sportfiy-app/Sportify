@@ -1,5 +1,6 @@
-import { UsersService } from './users.service';
 import { prisma } from '../../db/prisma';
+
+import { UsersService } from './users.service';
 
 jest.mock('../../db/prisma', () => ({
   prisma: {
@@ -47,12 +48,10 @@ describe('UsersService', () => {
       });
     });
 
-    it('should return null if user not found', async () => {
+    it('should throw error if user not found', async () => {
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
 
-      const result = await usersService.findById('nonexistent-id');
-
-      expect(result).toBeNull();
+      await expect(usersService.findById('nonexistent-id')).rejects.toThrow('User not found');
     });
   });
 

@@ -1,6 +1,8 @@
-import { EventsService } from './events.service';
-import { prisma } from '../../db/prisma';
 import { EventStatus, ParticipationStatus } from '@prisma/client';
+
+import { prisma } from '../../db/prisma';
+
+import { EventsService } from './events.service';
 
 jest.mock('../../db/prisma', () => ({
   prisma: {
@@ -13,6 +15,7 @@ jest.mock('../../db/prisma', () => ({
     },
     eventParticipation: {
       create: jest.fn(),
+      findUnique: jest.fn(),
       findFirst: jest.fn(),
       findMany: jest.fn(),
       delete: jest.fn(),
@@ -84,18 +87,24 @@ describe('EventsService', () => {
       };
 
       (prisma.event.findUnique as jest.Mock).mockResolvedValue(mockEvent);
+      (prisma.eventParticipation.findUnique as jest.Mock).mockResolvedValue(null);
 
       const result = await eventsService.getEventById(eventId);
 
-      expect(result).toEqual(mockEvent);
+      expect(result).toEqual({
+        ...mockEvent,
+        participants: [],
+        waitingList: [],
+        isUserJoined: false,
+        isUserInWaitingList: false,
+        userParticipationId: undefined,
+      });
     });
 
-    it('should return null if event not found', async () => {
+    it('should throw error if event not found', async () => {
       (prisma.event.findUnique as jest.Mock).mockResolvedValue(null);
 
-      const result = await eventsService.getEventById('nonexistent-id');
-
-      expect(result).toBeNull();
+      await expect(eventsService.getEventById('nonexistent-id')).rejects.toThrow('Event not found');
     });
   });
 
@@ -111,7 +120,7 @@ describe('EventsService', () => {
       };
 
       (prisma.event.findUnique as jest.Mock).mockResolvedValue(mockEvent);
-      (prisma.eventParticipation.findFirst as jest.Mock).mockResolvedValue(null);
+      (prisma.eventParticipation.findUnique as jest.Mock).mockResolvedValue(null);
       (prisma.eventParticipation.create as jest.Mock).mockResolvedValue({
         id: 'participation-123',
         eventId,
@@ -144,7 +153,7 @@ describe('EventsService', () => {
       };
 
       (prisma.event.findUnique as jest.Mock).mockResolvedValue(mockEvent);
-      (prisma.eventParticipation.findFirst as jest.Mock).mockResolvedValue(null);
+      (prisma.eventParticipation.findUnique as jest.Mock).mockResolvedValue(null);
       (prisma.eventParticipation.findMany as jest.Mock).mockResolvedValue([]);
       (prisma.eventParticipation.create as jest.Mock).mockResolvedValue({
         id: 'participation-123',

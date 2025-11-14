@@ -1,6 +1,8 @@
-import { PostsService } from './posts.service';
-import { prisma } from '../../db/prisma';
 import { PostType } from '@prisma/client';
+
+import { prisma } from '../../db/prisma';
+
+import { PostsService } from './posts.service';
 
 jest.mock('../../db/prisma', () => ({
   prisma: {
@@ -13,6 +15,7 @@ jest.mock('../../db/prisma', () => ({
     },
     postLike: {
       create: jest.fn(),
+      findUnique: jest.fn(),
       findFirst: jest.fn(),
       delete: jest.fn(),
     },
@@ -111,10 +114,14 @@ describe('PostsService', () => {
       };
 
       (prisma.post.findUnique as jest.Mock).mockResolvedValue(mockPost);
+      (prisma.postLike.findUnique as jest.Mock).mockResolvedValue(null);
 
       const result = await postsService.getPostById(postId);
 
-      expect(result).toEqual(mockPost);
+      expect(result).toEqual({
+        ...mockPost,
+        isLiked: false,
+      });
     });
   });
 
@@ -123,7 +130,7 @@ describe('PostsService', () => {
       const postId = 'post-123';
       const userId = 'user-456';
 
-      (prisma.postLike.findFirst as jest.Mock).mockResolvedValue(null);
+      (prisma.postLike.findUnique as jest.Mock).mockResolvedValue(null);
       (prisma.postLike.create as jest.Mock).mockResolvedValue({
         id: 'like-123',
         postId,

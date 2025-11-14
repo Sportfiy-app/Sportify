@@ -1,8 +1,9 @@
 import { PrismaClient } from '@prisma/client';
 
 import { prisma } from '../../db/prisma';
-import { PostsService } from '../posts/posts.service';
 import { EventsService } from '../events/events.service';
+import { PostsService } from '../posts/posts.service';
+
 import { HomeFeedResponse } from './home.types';
 
 export class HomeService {

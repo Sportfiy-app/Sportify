@@ -10,7 +10,7 @@ export class EmailService {
     const smtpPort = process.env.SMTP_PORT;
     const smtpUser = process.env.SMTP_USER;
     const smtpPassword = process.env.SMTP_PASSWORD;
-    const smtpFrom = process.env.SMTP_FROM || smtpUser || 'noreply@sportify.app';
+    // smtpFrom is available but not used in current implementation
 
     if (smtpHost && smtpPort && smtpUser && smtpPassword) {
       this.transporter = nodemailer.createTransport({
@@ -81,7 +81,7 @@ export class EmailService {
   /**
    * Get HTML template for verification email
    */
-  private getVerificationEmailTemplate(email: string, verificationUrl: string, token: string): string {
+  private getVerificationEmailTemplate(email: string, verificationUrl: string, _token: string): string {
     return `
 <!DOCTYPE html>
 <html lang="fr">
@@ -166,7 +166,7 @@ export class EmailService {
   /**
    * Get plain text version of verification email
    */
-  private getVerificationEmailText(email: string, verificationUrl: string, token: string): string {
+  private getVerificationEmailText(email: string, verificationUrl: string, _token: string): string {
     return `
 Bonjour,
 

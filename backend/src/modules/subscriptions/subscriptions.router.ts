@@ -2,6 +2,7 @@ import { Router } from 'express';
 
 import { authenticate } from '../../middleware/auth';
 import { validateBody } from '../../middleware/validate';
+
 import { createSubscriptionSchema, updateSubscriptionSchema } from './subscriptions.schema';
 import { SubscriptionsService } from './subscriptions.service';
 

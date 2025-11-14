@@ -4,10 +4,10 @@ import { z } from 'zod';
 import { authenticate } from '../../middleware/auth';
 import { validateBody } from '../../middleware/validate';
 
-import { UsersService } from './users.service';
-import { UserSportsService } from './user-sports.service';
-import { addUserSportSchema, updateUserSportSchema } from './user-sports.schema';
 import { uploadAvatarSchema } from './upload.schema';
+import { addUserSportSchema, updateUserSportSchema } from './user-sports.schema';
+import { UserSportsService } from './user-sports.service';
+import { UsersService } from './users.service';
 
 const router = Router();
 const usersService = new UsersService();

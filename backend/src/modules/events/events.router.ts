@@ -2,11 +2,10 @@ import { Router } from 'express';
 
 import { authenticate } from '../../middleware/auth';
 import { validateBody, validateQuery } from '../../middleware/validate';
+
 import {
   createEventSchema,
   updateEventSchema,
-  joinEventSchema,
-  leaveEventSchema,
   getEventsQuerySchema,
 } from './events.schema';
 import { EventsService } from './events.service';
@@ -36,7 +35,6 @@ router.get(
   validateQuery(getEventsQuerySchema),
   async (req, res, next) => {
     try {
-      const userId = req.user?.sub;
       const result = await eventsService.getEvents({
         sport: req.query.sport as string | undefined,
         status: req.query.status as any,

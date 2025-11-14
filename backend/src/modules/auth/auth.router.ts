@@ -5,8 +5,8 @@ import { authenticate } from '../../middleware/auth';
 import { validateBody } from '../../middleware/validate';
 
 import { loginSchema, refreshSchema, registerSchema } from './auth.schema';
-import { sendSmsCodeSchema, verifySmsCodeSchema, sendEmailVerificationSchema, verifyEmailSchema } from './verification.schema';
 import { AuthService } from './auth.service';
+import { sendSmsCodeSchema, verifySmsCodeSchema, sendEmailVerificationSchema, verifyEmailSchema } from './verification.schema';
 import { VerificationService } from './verification.service';
 
 const router = Router();

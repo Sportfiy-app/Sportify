@@ -1,10 +1,12 @@
-import { VerificationService } from './verification.service';
 import { prisma } from '../../db/prisma';
+
+import { VerificationService } from './verification.service';
 
 jest.mock('../../db/prisma', () => ({
   prisma: {
     user: {
       update: jest.fn(),
+      findUnique: jest.fn(),
       findFirst: jest.fn(),
     },
   },
