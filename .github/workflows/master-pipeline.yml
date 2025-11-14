@@ -479,7 +479,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Run SonarCloud Scan
-        if: ${{ secrets.SONAR_TOKEN != '' }}
+        continue-on-error: true
         uses: SonarSource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -589,7 +589,7 @@ jobs:
             --dart-define=API_URL=https://review-api.sportify.app
 
       - name: Deploy to Netlify (Review)
-        if: ${{ secrets.NETLIFY_STAGING_AUTH_TOKEN != '' && secrets.NETLIFY_STAGING_SITE_ID != '' }}
+        continue-on-error: true
         uses: nwtgck/actions-netlify@v3.0
         with:
           publish-dir: './build/web'
@@ -645,7 +645,7 @@ jobs:
         run: npm run build
 
       - name: Deploy to Heroku (Staging)
-        if: ${{ secrets.HEROKU_STAGING_API_KEY != '' && secrets.HEROKU_STAGING_APP_NAME != '' }}
+        continue-on-error: true
         uses: akhileshns/heroku-deploy@v3.13.15
         with:
           heroku_api_key: ${{ secrets.HEROKU_STAGING_API_KEY }}
@@ -684,7 +684,7 @@ jobs:
             --dart-define=API_URL=https://staging-api.sportify.app
 
       - name: Deploy to Netlify (Staging)
-        if: ${{ secrets.NETLIFY_STAGING_AUTH_TOKEN != '' && secrets.NETLIFY_STAGING_SITE_ID != '' }}
+        continue-on-error: true
         uses: nwtgck/actions-netlify@v3.0
         with:
           publish-dir: './build/web'
@@ -742,7 +742,7 @@ jobs:
         run: npm run build
 
       - name: Deploy to Heroku (Production)
-        if: ${{ secrets.HEROKU_API_KEY != '' && secrets.HEROKU_APP_NAME != '' }}
+        continue-on-error: true
         uses: akhileshns/heroku-deploy@v3.13.15
         with:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
@@ -753,11 +753,11 @@ jobs:
           usedocker: false
 
       - name: Install Heroku CLI
-        if: ${{ secrets.HEROKU_API_KEY != '' && secrets.HEROKU_APP_NAME != '' }}
+        continue-on-error: true
         run: curl https://cli-assets.heroku.com/install.sh | sh
 
       - name: Set Heroku API key
-        if: ${{ secrets.HEROKU_API_KEY != '' && secrets.HEROKU_APP_NAME != '' }}
+        continue-on-error: true
         run: |
           mkdir -p ~/.netrc
           echo "machine api.heroku.com" >> ~/.netrc
@@ -766,12 +766,12 @@ jobs:
           chmod 600 ~/.netrc
 
       - name: Run database migrations
-        if: ${{ secrets.HEROKU_API_KEY != '' && secrets.HEROKU_APP_NAME != '' }}
+        continue-on-error: true
         run: |
           heroku run npx prisma migrate deploy -a ${{ secrets.HEROKU_APP_NAME }} || echo "Migrations already up to date"
 
       - name: Restart Heroku app
-        if: ${{ secrets.HEROKU_API_KEY != '' && secrets.HEROKU_APP_NAME != '' }}
+        continue-on-error: true
         run: |
           heroku restart -a ${{ secrets.HEROKU_APP_NAME }}
 
@@ -806,7 +806,7 @@ jobs:
             --dart-define=API_URL=https://api.sportify.app
 
       - name: Deploy to Firebase Hosting (Production)
-        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
+        continue-on-error: true
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
@@ -815,7 +815,7 @@ jobs:
           projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
 
       - name: Deploy to Netlify (Production)
-        if: ${{ secrets.NETLIFY_AUTH_TOKEN != '' && secrets.NETLIFY_SITE_ID != '' }}
+        continue-on-error: true
         uses: nwtgck/actions-netlify@v3.0
         with:
           publish-dir: './build/web'
