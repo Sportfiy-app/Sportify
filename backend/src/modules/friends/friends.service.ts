@@ -323,6 +323,31 @@ export class FriendsService {
     return { deleted: true };
   }
 
+  async cancelFriendRequest(userId: string, friendshipId: string) {
+    const friendship = await this.db.friendship.findUnique({
+      where: { id: friendshipId },
+    });
+
+    if (!friendship) {
+      throw createHttpError(404, 'Friend request not found');
+    }
+
+    // Only requester can cancel their own request
+    if (friendship.requesterId !== userId) {
+      throw createHttpError(403, 'Only the requester can cancel their friend request');
+    }
+
+    if (friendship.status !== FriendshipStatus.PENDING) {
+      throw createHttpError(400, 'Can only cancel pending friend requests');
+    }
+
+    await this.db.friendship.delete({
+      where: { id: friendshipId },
+    });
+
+    return { deleted: true };
+  }
+
   async getFriendshipStatus(userId: string, otherUserId: string) {
     if (userId === otherUserId) {
       return { status: 'self' };

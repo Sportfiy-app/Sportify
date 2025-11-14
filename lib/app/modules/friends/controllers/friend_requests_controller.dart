@@ -88,10 +88,7 @@ class FriendRequestsController extends GetxController {
 
   Future<void> cancelSentRequest(FriendRequestModel request) async {
     try {
-      await _friendsRepository.respondToFriendRequest(
-        friendshipId: request.id,
-        action: 'reject', // Use reject to cancel sent request
-      );
+      await _friendsRepository.cancelFriendRequest(request.id);
       sentRequests.removeWhere((r) => r.id == request.id);
       Get.snackbar('Demande annulée', 'La demande a été annulée');
       await loadRequests(); // Reload to update counts

@@ -175,10 +175,16 @@ class ChatDetailController extends GetxController {
       final index = messages.indexWhere((m) => m.id == optimisticMessage.id);
       if (index != -1) {
         messages[index] = _convertMessageToChatMessage(sentMessage);
+      } else {
+        // If not found, add the new message
+        messages.add(_convertMessageToChatMessage(sentMessage));
       }
 
       // Mark messages as read
       await _markMessagesAsRead([sentMessage.id]);
+      
+      // Scroll to bottom to show new message
+      _scrollToBottom();
     } on ApiException catch (e) {
       // Remove optimistic message on error
       messages.removeWhere((m) => m.id == optimisticMessage.id);

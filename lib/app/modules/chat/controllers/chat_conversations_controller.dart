@@ -73,7 +73,10 @@ class ChatConversationsController extends GetxController {
       if (kDebugMode) {
         debugPrint('Error loading conversations: ${e.message}');
       }
-      Get.snackbar('Erreur', 'Impossible de charger les conversations: ${e.message}');
+      // Don't show snackbar if it's just "no conversations" - that's normal
+      if (e.statusCode != 404) {
+        Get.snackbar('Erreur', 'Impossible de charger les conversations: ${e.message}');
+      }
     } catch (e) {
       errorMessage.value = 'Une erreur inattendue est survenue';
       if (kDebugMode) {

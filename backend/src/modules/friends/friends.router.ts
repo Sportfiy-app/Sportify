@@ -117,5 +117,20 @@ router.delete(
   },
 );
 
+// Cancel friend request (for requester)
+router.delete(
+  '/request/:friendshipId',
+  authenticate(),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user!.sub;
+      const result = await friendsService.cancelFriendRequest(userId, req.params.friendshipId);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
 export default router;
 

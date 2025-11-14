@@ -110,5 +110,17 @@ class FriendsRepository extends GetxService {
       rethrow;
     }
   }
+
+  Future<Map<String, dynamic>> cancelFriendRequest(String friendshipId) async {
+    try {
+      final response = await _apiClient.delete(
+        '/friends/request/$friendshipId',
+        requireAuth: true,
+      );
+      return response;
+    } on ApiException {
+      rethrow;
+    }
+  }
 }
 

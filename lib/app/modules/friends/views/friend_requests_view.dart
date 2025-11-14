@@ -204,7 +204,8 @@ class _RequestCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = isReceived ? request.requester : request.addressee;
+                  // For received requests, show requester; for sent requests, show addressee
+                  final user = isReceived ? request.requester : request.addressee;
 
     return Container(
       padding: EdgeInsets.all(16 * scale),

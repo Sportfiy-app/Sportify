@@ -40,9 +40,11 @@ class FriendModel {
       avatarUrl: json['avatarUrl'] as String?,
       email: json['email'] as String?,
       city: json['city'] as String?,
-      friendshipId: json['friendshipId'] as String,
-      status: json['status'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      friendshipId: json['friendshipId'] as String? ?? json['id'] as String, // Fallback if friendshipId not present
+      status: json['status'] as String? ?? 'ACCEPTED', // Default status
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'] as String)
+          : DateTime.now(), // Fallback to now if not present
     );
   }
 }
