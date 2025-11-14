@@ -26,7 +26,37 @@ class ChatConversationsView extends GetView<ChatConversationsController> {
                 Expanded(
                   child: Obx(
                     () {
+                      if (controller.isLoading.value && controller.conversations.isEmpty) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (controller.errorMessage.value != null && controller.conversations.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                controller.errorMessage.value!,
+                                style: GoogleFonts.inter(color: const Color(0xFFEF4444), fontSize: 14 * scale),
+                                textAlign: TextAlign.center,
+                              ),
+                              SizedBox(height: 16 * scale),
+                              ElevatedButton(
+                                onPressed: controller.loadConversations,
+                                child: const Text('Réessayer'),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
                       final items = controller.filteredConversations.toList();
+                      if (items.isEmpty) {
+                        return Center(
+                          child: Text(
+                            'Aucune conversation',
+                            style: GoogleFonts.inter(color: const Color(0xFF94A3B8), fontSize: 14 * scale),
+                          ),
+                        );
+                      }
                       return CustomScrollView(
                         slivers: [
                           SliverPadding(

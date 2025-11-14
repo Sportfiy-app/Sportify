@@ -1,69 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter/foundation.dart';
 
+import '../../../data/api/api_exception.dart';
+import '../../../data/messages/messages_repository.dart';
+import '../../../data/messages/models/message_model.dart';
+import '../../../data/users/users_repository.dart';
 import '../../../routes/app_routes.dart';
 
 class ChatConversationsController extends GetxController {
+  ChatConversationsController(this._messagesRepository, this._usersRepository);
+
+  final MessagesRepository _messagesRepository;
+  final UsersRepository _usersRepository;
+
   final searchController = TextEditingController();
   final RxString query = ''.obs;
-
-  final RxList<ConversationItem> conversations = <ConversationItem>[
-    ConversationItem(
-      id: 'c1',
-      name: 'Margot Doe',
-      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=60',
-      lastMessage: 'Parfait ! À tout à l’heure 👋',
-      lastTimestamp: DateTime.now().subtract(const Duration(minutes: 2)),
-      unreadCount: 2,
-      isOnline: true,
-    ),
-    ConversationItem(
-      id: 'c2',
-      name: 'Sarah Martin',
-      avatarUrl: 'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=200&q=60',
-      lastMessage: 'Je suis en route !',
-      lastTimestamp: DateTime.now().subtract(const Duration(minutes: 25)),
-      unreadCount: 0,
-      lastStatus: MessageStatus.read,
-      isTyping: true,
-    ),
-    ConversationItem(
-      id: 'c3',
-      name: 'Equipe Sportify',
-      avatarUrl: 'https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=200&q=60',
-      lastMessage: 'Votre réservation pour ce soir est confirmée ✅',
-      lastTimestamp: DateTime.now().subtract(const Duration(hours: 5)),
-      unreadCount: 0,
-      isVerified: true,
-      pinned: true,
-    ),
-    ConversationItem(
-      id: 'c4',
-      name: 'Club Padel Paris',
-      avatarUrl: 'https://images.unsplash.com/photo-1521412644187-c49fa049e84d?auto=format&fit=crop&w=200&q=60',
-      lastMessage: 'Nouvelle session disponibles demain à 18h.',
-      lastTimestamp: DateTime.now().subtract(const Duration(days: 1, hours: 3)),
-      unreadCount: 4,
-    ),
-    ConversationItem(
-      id: 'c5',
-      name: 'Thomas',
-      avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=60',
-      lastMessage: 'Super match hier, merci !',
-      lastTimestamp: DateTime.now().subtract(const Duration(days: 2)),
-      unreadCount: 0,
-      lastStatus: MessageStatus.sent,
-    ),
-    ConversationItem(
-      id: 'c6',
-      name: 'Groupe Running Bois',
-      avatarUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=60',
-      lastMessage: 'Encore 3 places pour demain matin 🏃‍♂️',
-      lastTimestamp: DateTime.now().subtract(const Duration(days: 3)),
-      unreadCount: 0,
-      isMuted: true,
-    ),
-  ].obs;
+  final RxList<ConversationItem> conversations = <ConversationItem>[].obs;
+  final RxBool isLoading = false.obs;
+  final RxString? errorMessage = RxString(null);
+  final RxString? currentUserId = RxString(null);
 
   final RxString selectedFilter = 'Tous'.obs;
 
@@ -84,6 +40,72 @@ class ChatConversationsController extends GetxController {
     }
   }
 
+  @override
+  void onInit() {
+    super.onInit();
+    _loadCurrentUserId();
+    loadConversations();
+  }
+
+  Future<void> _loadCurrentUserId() async {
+    try {
+      final user = await _usersRepository.getCurrentUser();
+      currentUserId.value = user.id;
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Error loading current user: $e');
+      }
+    }
+  }
+
+  Future<void> loadConversations() async {
+    isLoading.value = true;
+    errorMessage.value = null;
+    try {
+      final response = await _messagesRepository.getConversations();
+      final conversationsList = (response['conversations'] as List<dynamic>)
+          .map((item) => ConversationModel.fromJson(item as Map<String, dynamic>))
+          .toList();
+
+      conversations.value = conversationsList.map((conv) => _convertConversationToItem(conv)).toList();
+    } on ApiException catch (e) {
+      errorMessage.value = e.message;
+      if (kDebugMode) {
+        debugPrint('Error loading conversations: ${e.message}');
+      }
+      Get.snackbar('Erreur', 'Impossible de charger les conversations: ${e.message}');
+    } catch (e) {
+      errorMessage.value = 'Une erreur inattendue est survenue';
+      if (kDebugMode) {
+        debugPrint('Error loading conversations: $e');
+      }
+      Get.snackbar('Erreur', 'Impossible de charger les conversations');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  ConversationItem _convertConversationToItem(ConversationModel conv) {
+    final isMe = conv.lastMessage.senderId == currentUserId.value;
+    final lastStatus = isMe
+        ? (conv.lastMessage.read ? MessageStatus.read : MessageStatus.sent)
+        : null;
+
+    return ConversationItem(
+      id: conv.userId,
+      name: conv.user.fullName,
+      avatarUrl: conv.user.avatarUrl ?? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=60',
+      lastMessage: conv.lastMessage.content,
+      lastTimestamp: conv.lastMessage.createdAt,
+      unreadCount: conv.unreadCount,
+      lastStatus: lastStatus,
+      isOnline: false, // TODO: Implement online status
+      isTyping: false, // TODO: Implement typing indicator
+      isVerified: false, // TODO: Implement verified status
+      pinned: false, // TODO: Implement pinned conversations
+    );
+  }
+
   void selectFilter(String filter) {
     selectedFilter.value = filter;
   }
@@ -98,7 +120,11 @@ class ChatConversationsController extends GetxController {
   }
 
   void openConversation(ConversationItem conversation) {
-    Get.toNamed(Routes.chatDetail, arguments: conversation.id);
+    Get.toNamed(Routes.chatDetail, arguments: {
+      'userId': conversation.id,
+      'userName': conversation.name,
+      'userAvatar': conversation.avatarUrl,
+    });
   }
 
   void deleteConversation(ConversationItem conversation) {
@@ -272,4 +298,3 @@ class ConversationItem {
 }
 
 enum MessageStatus { sending, sent, read }
-

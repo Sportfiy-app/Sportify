@@ -24,23 +24,36 @@ class ChatDetailView extends GetView<ChatDetailController> {
                 _Header(scale: scale),
                 Expanded(
                   child: Obx(
-                    () => ListView.builder(
-                      controller: controller.scrollController,
-                      padding: EdgeInsets.symmetric(horizontal: 16 * scale, vertical: 24 * scale),
-                      itemCount: controller.messages.length,
-                      itemBuilder: (context, index) {
-                        final message = controller.messages[index];
-                        final isFirst = index == 0;
-                        final nextSender = index < controller.messages.length - 1 ? controller.messages[index + 1].sender : null;
-                        final showTime = isFirst || message.sender != nextSender;
-                        return _MessageBubble(
-                          scale: scale,
-                          message: message,
-                          showTime: showTime,
-                          onImageTap: controller.openMedia,
+                    () {
+                      if (controller.isLoading.value && controller.messages.isEmpty) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (controller.messages.isEmpty) {
+                        return Center(
+                          child: Text(
+                            'Aucun message',
+                            style: GoogleFonts.inter(color: const Color(0xFF94A3B8), fontSize: 14 * scale),
+                          ),
                         );
-                      },
-                    ),
+                      }
+                      return ListView.builder(
+                        controller: controller.scrollController,
+                        padding: EdgeInsets.symmetric(horizontal: 16 * scale, vertical: 24 * scale),
+                        itemCount: controller.messages.length,
+                        itemBuilder: (context, index) {
+                          final message = controller.messages[index];
+                          final isFirst = index == 0;
+                          final nextSender = index < controller.messages.length - 1 ? controller.messages[index + 1].sender : null;
+                          final showTime = isFirst || message.sender != nextSender;
+                          return _MessageBubble(
+                            scale: scale,
+                            message: message,
+                            showTime: showTime,
+                            onImageTap: controller.openMedia,
+                          );
+                        },
+                      );
+                    },
                   ),
                 ),
                 _InputBar(scale: scale),
@@ -83,7 +96,7 @@ class _Header extends GetView<ChatDetailController> {
                   children: [
                     CircleAvatar(
                       radius: 22 * scale,
-                      backgroundImage: const NetworkImage('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=60'),
+                      backgroundImage: NetworkImage(controller.otherUserAvatar),
                     ),
                     Positioned(
                       right: 0,
@@ -105,7 +118,7 @@ class _Header extends GetView<ChatDetailController> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Margot Doe',
+                      controller.otherUserName,
                       style: GoogleFonts.poppins(color: const Color(0xFF0B1220), fontSize: 16 * scale, fontWeight: FontWeight.w600),
                     ),
                     SizedBox(height: 4 * scale),

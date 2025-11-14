@@ -1,114 +1,212 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter/foundation.dart';
+
+import '../../../data/api/api_exception.dart';
+import '../../../data/messages/messages_repository.dart';
+import '../../../data/messages/models/message_model.dart';
+import '../../../data/users/users_repository.dart';
 
 class ChatDetailController extends GetxController {
+  ChatDetailController(this._messagesRepository, this._usersRepository);
+
+  final MessagesRepository _messagesRepository;
+  final UsersRepository _usersRepository;
+
   final ScrollController scrollController = ScrollController();
   final TextEditingController messageController = TextEditingController();
 
-  final RxList<ChatMessage> messages = <ChatMessage>[
-    ChatMessage(
-      id: 'm1',
-      sender: ChatSender.them,
-      type: ChatMessageType.text,
-      text: 'Salut ! Tu es dispo pour un match de tennis ce soir ? 🎾',
-      timeLabel: '14:25',
-    ),
-    ChatMessage(
-      id: 'm2',
-      sender: ChatSender.me,
-      type: ChatMessageType.text,
-      text: 'Oui parfait ! À quelle heure ?',
-      timeLabel: '14:26',
-      status: ChatMessageStatus.read,
-    ),
-    ChatMessage(
-      id: 'm3',
-      sender: ChatSender.them,
-      type: ChatMessageType.media,
-      images: const [
-        'https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=600&q=60',
-        'https://images.unsplash.com/photo-1521412644187-c49fa049e84d?auto=format&fit=crop&w=600&q=60',
-      ],
-      text: 'Regarde ce terrain ! On peut réserver pour 19h.',
-      timeLabel: '14:28',
-    ),
-    ChatMessage(
-      id: 'm4',
-      sender: ChatSender.me,
-      type: ChatMessageType.voice,
-      voiceDuration: const Duration(seconds: 35),
-      timeLabel: '14:30',
-      status: ChatMessageStatus.read,
-    ),
-    ChatMessage(
-      id: 'm5',
-      sender: ChatSender.them,
-      type: ChatMessageType.text,
-      text: 'Génial ! J’ai hâte 😄 Tu as ton équipement ?',
-      timeLabel: '14:32',
-    ),
-    ChatMessage(
-      id: 'm6',
-      sender: ChatSender.me,
-      type: ChatMessageType.text,
-      text: 'Oui j’ai tout ! On se retrouve directement là-bas ?',
-      timeLabel: '14:33',
-      status: ChatMessageStatus.read,
-    ),
-    ChatMessage(
-      id: 'm7',
-      sender: ChatSender.them,
-      type: ChatMessageType.media,
-      images: const [
-        'https://images.unsplash.com/photo-1527708673438-91226c61d3ef?auto=format&fit=crop&w=1200&q=60',
-      ],
-      text: 'Voici l’adresse exacte du club.',
-      timeLabel: '14:35',
-    ),
-    ChatMessage(
-      id: 'm8',
-      sender: ChatSender.me,
-      type: ChatMessageType.text,
-      text: 'Parfait ! À tout à l’heure 👋',
-      timeLabel: '14:36',
-      status: ChatMessageStatus.read,
-    ),
-  ].obs;
+  final RxList<ChatMessage> messages = <ChatMessage>[].obs;
+  final RxBool isLoading = false.obs;
+  final RxBool isSending = false.obs;
+  final RxString? errorMessage = RxString(null);
+  final RxString? currentUserId = RxString(null);
+  final Rx<MessageUser?> otherUser = Rx<MessageUser?>(null);
 
-  final RxBool isRecording = false.obs;
+  String? _otherUserId;
+  String? _otherUserName;
+  String? _otherUserAvatar;
 
-  void toggleRecording() {
-    isRecording.toggle();
-    if (isRecording.value) {
-      Get.snackbar('Enregistrement', 'Maintenez pour enregistrer un vocal.');
-    } else {
-      Get.snackbar('Enregistrement', 'Message vocal enregistré.');
+  @override
+  void onInit() {
+    super.onInit();
+    final args = Get.arguments;
+    if (args is Map<String, dynamic>) {
+      _otherUserId = args['userId'] as String?;
+      _otherUserName = args['userName'] as String?;
+      _otherUserAvatar = args['userAvatar'] as String?;
+    } else if (args is String) {
+      _otherUserId = args;
+    }
+
+    if (_otherUserId == null) {
+      Get.back();
+      Get.snackbar('Erreur', 'Utilisateur non spécifié');
+      return;
+    }
+
+    _loadCurrentUserId();
+    loadMessages();
+  }
+
+  Future<void> _loadCurrentUserId() async {
+    try {
+      final user = await _usersRepository.getCurrentUser();
+      currentUserId.value = user.id;
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Error loading current user: $e');
+      }
     }
   }
 
-  void sendMessage() {
+  Future<void> loadMessages() async {
+    if (_otherUserId == null) return;
+
+    isLoading.value = true;
+    errorMessage.value = null;
+    try {
+      final response = await _messagesRepository.getMessages(userId: _otherUserId);
+      final messagesList = response.messages;
+
+      messages.value = messagesList.map((msg) => _convertMessageToChatMessage(msg)).toList();
+      _scrollToBottom();
+    } on ApiException catch (e) {
+      errorMessage.value = e.message;
+      if (kDebugMode) {
+        debugPrint('Error loading messages: ${e.message}');
+      }
+      Get.snackbar('Erreur', 'Impossible de charger les messages: ${e.message}');
+    } catch (e) {
+      errorMessage.value = 'Une erreur inattendue est survenue';
+      if (kDebugMode) {
+        debugPrint('Error loading messages: $e');
+      }
+      Get.snackbar('Erreur', 'Impossible de charger les messages');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  ChatMessage _convertMessageToChatMessage(MessageModel msg) {
+    final isMe = msg.senderId == currentUserId.value;
+    final sender = isMe ? ChatSender.me : ChatSender.them;
+
+    // Determine message type (for now, only text is supported)
+    final type = ChatMessageType.text;
+
+    // Determine status
+    ChatMessageStatus? status;
+    if (isMe) {
+      status = msg.read ? ChatMessageStatus.read : ChatMessageStatus.sent;
+    }
+
+    // Format time
+    final timeLabel = _formatTime(msg.createdAt);
+
+    return ChatMessage(
+      id: msg.id,
+      sender: sender,
+      type: type,
+      text: msg.content,
+      timeLabel: timeLabel,
+      status: status,
+    );
+  }
+
+  String _formatTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference < const Duration(minutes: 1)) {
+      return 'À l\'instant';
+    } else if (difference < const Duration(hours: 1)) {
+      return '${difference.inMinutes} min';
+    } else if (difference < const Duration(hours: 24)) {
+      final hours = dateTime.hour.toString().padLeft(2, '0');
+      final minutes = dateTime.minute.toString().padLeft(2, '0');
+      return '$hours:$minutes';
+    } else if (difference < const Duration(days: 2)) {
+      final hours = dateTime.hour.toString().padLeft(2, '0');
+      final minutes = dateTime.minute.toString().padLeft(2, '0');
+      return 'Hier $hours:$minutes';
+    } else if (difference < const Duration(days: 7)) {
+      final weekdays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+      final hours = dateTime.hour.toString().padLeft(2, '0');
+      final minutes = dateTime.minute.toString().padLeft(2, '0');
+      return '${weekdays[dateTime.weekday - 1]} $hours:$minutes';
+    } else {
+      final day = dateTime.day.toString().padLeft(2, '0');
+      final month = dateTime.month.toString().padLeft(2, '0');
+      final hours = dateTime.hour.toString().padLeft(2, '0');
+      final minutes = dateTime.minute.toString().padLeft(2, '0');
+      return '$day/$month $hours:$minutes';
+    }
+  }
+
+  Future<void> sendMessage() async {
+    if (_otherUserId == null) return;
+
     final text = messageController.text.trim();
     if (text.isEmpty) return;
-    final message = ChatMessage(
+
+    // Create optimistic message
+    final optimisticMessage = ChatMessage(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       sender: ChatSender.me,
       type: ChatMessageType.text,
       text: text,
-      timeLabel: 'À l’instant',
+      timeLabel: 'À l\'instant',
       status: ChatMessageStatus.sending,
     );
-    messages.add(message);
+
+    messages.add(optimisticMessage);
     messageController.clear();
     _scrollToBottom();
-    Future.delayed(const Duration(milliseconds: 800), () {
-      final index = messages.indexWhere((m) => m.id == message.id);
+
+    isSending.value = true;
+    try {
+      final sentMessage = await _messagesRepository.sendMessage(
+        receiverId: _otherUserId!,
+        content: text,
+      );
+
+      // Replace optimistic message with real one
+      final index = messages.indexWhere((m) => m.id == optimisticMessage.id);
       if (index != -1) {
-        messages[index] = messages[index].copyWith(
-          status: ChatMessageStatus.read,
-          timeLabel: 'À l’instant',
-        );
+        messages[index] = _convertMessageToChatMessage(sentMessage);
       }
-    });
+
+      // Mark messages as read
+      await _markMessagesAsRead([sentMessage.id]);
+    } on ApiException catch (e) {
+      // Remove optimistic message on error
+      messages.removeWhere((m) => m.id == optimisticMessage.id);
+      Get.snackbar('Erreur', 'Impossible d\'envoyer le message: ${e.message}');
+    } catch (e) {
+      // Remove optimistic message on error
+      messages.removeWhere((m) => m.id == optimisticMessage.id);
+      if (kDebugMode) {
+        debugPrint('Error sending message: $e');
+      }
+      Get.snackbar('Erreur', 'Impossible d\'envoyer le message');
+    } finally {
+      isSending.value = false;
+    }
+  }
+
+  Future<void> _markMessagesAsRead(List<String> messageIds) async {
+    try {
+      await _messagesRepository.markAsRead(messageIds);
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Error marking messages as read: $e');
+      }
+    }
+  }
+
+  void toggleRecording() {
+    Get.snackbar('Enregistrement', 'Messages vocaux à venir.');
   }
 
   void _scrollToBottom() {
@@ -137,11 +235,8 @@ class ChatDetailController extends GetxController {
     Get.snackbar('Profil', 'Afficher le profil de votre contact bientôt disponible.');
   }
 
-  @override
-  void onInit() {
-    super.onInit();
-    _scrollToBottom();
-  }
+  String get otherUserName => _otherUserName ?? otherUser.value?.fullName ?? 'Utilisateur';
+  String get otherUserAvatar => _otherUserAvatar ?? otherUser.value?.avatarUrl ?? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=60';
 
   @override
   void onClose() {
@@ -312,4 +407,3 @@ class ChatMessage {
     );
   }
 }
-
