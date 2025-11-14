@@ -515,7 +515,7 @@ jobs:
     name: 🌿 Review → Determine
     runs-on: ubuntu-latest
     needs: [e2e-backend, functional-tests]
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
     outputs:
       should-deploy: ${{ steps.check.outputs.should-deploy }}
       pr-number: ${{ github.event.pull_request.number }}
@@ -568,7 +568,10 @@ jobs:
     name: 🌿 Review → Frontend (Netlify)
     runs-on: ubuntu-latest
     needs: [show-pipeline-tree, determine-review]
-    if: needs.determine-review.outputs.should-deploy == 'true'
+    if: |
+      always() &&
+      needs.determine-review.result == 'success' &&
+      needs.determine-review.outputs.should-deploy == 'true'
     environment:
       name: Review
 
@@ -612,7 +615,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [e2e-backend, functional-tests]
     if: |
-      (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
+      (github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main')) ||
       (github.event_name == 'workflow_dispatch')
     outputs:
       should-deploy: ${{ steps.check.outputs.should-deploy }}
@@ -625,7 +628,10 @@ jobs:
     name: 🌿 Staging → Backend (Heroku)
     runs-on: ubuntu-latest
     needs: [show-pipeline-tree, determine-staging]
-    if: needs.determine-staging.outputs.should-deploy == 'true'
+    if: |
+      always() &&
+      needs.determine-staging.result == 'success' &&
+      needs.determine-staging.outputs.should-deploy == 'true'
     environment:
       name: Staging
     defaults:
