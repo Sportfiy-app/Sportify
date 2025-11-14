@@ -14,7 +14,7 @@ void main() {
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(const SportifyApp());
-    await tester.pump(); // allow first frame
+    await tester.pumpAndSettle(const Duration(seconds: 1));
 
     expect(find.text('Sportify'), findsOneWidget);
     expect(find.text('Chargement...'), findsOneWidget);

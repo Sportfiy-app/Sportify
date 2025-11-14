@@ -1267,15 +1267,11 @@ class _CircleIcon extends StatelessWidget {
     required this.scale,
     required this.icon,
     required this.color,
-    this.iconColor,
-    this.backgroundAlpha = 0.1,
   });
 
   final double scale;
   final IconData icon;
   final Color color;
-  final Color? iconColor;
-  final double backgroundAlpha;
 
   @override
   Widget build(BuildContext context) {
@@ -1283,11 +1279,11 @@ class _CircleIcon extends StatelessWidget {
       width: 32 * scale,
       height: 32 * scale,
       decoration: BoxDecoration(
-        color: color.withValues(alpha: backgroundAlpha),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(9999),
       ),
       alignment: Alignment.center,
-      child: Icon(icon, color: iconColor ?? color, size: 18 * scale),
+      child: Icon(icon, color: color, size: 18 * scale),
     );
   }
 }
