@@ -159,11 +159,22 @@ class ApiClient extends GetxService {
   }
 
   static String _resolveBaseUrl() {
-    const envUrl = String.fromEnvironment('SPORTIFY_API_URL');
-    if (envUrl.isNotEmpty) {
-      return envUrl.endsWith('/') ? envUrl.substring(0, envUrl.length - 1) : envUrl;
+    // Try API_URL first (used in CI/CD), then SPORTIFY_API_URL (legacy)
+    const envUrl = String.fromEnvironment('API_URL');
+    const legacyUrl = String.fromEnvironment('SPORTIFY_API_URL');
+    
+    final url = envUrl.isNotEmpty ? envUrl : legacyUrl;
+    
+    if (url.isNotEmpty) {
+      // Ensure URL ends with /api if not already present
+      var baseUrl = url.endsWith('/') ? url.substring(0, url.length - 1) : url;
+      if (!baseUrl.endsWith('/api')) {
+        baseUrl = '$baseUrl/api';
+      }
+      return baseUrl;
     }
 
+    // Default to localhost for development
     if (kIsWeb) {
       return 'http://localhost:3333/api';
     }

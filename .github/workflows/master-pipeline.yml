@@ -603,7 +603,7 @@ jobs:
         run: |
           flutter build web --release \
             --dart-define=ENVIRONMENT=review \
-            --dart-define=API_URL=https://review-api.sportify.app
+            --dart-define=API_URL=https://sportify-backend-f47b5a5fe209.herokuapp.com
 
       - name: Deploy to Netlify (Review)
         continue-on-error: true
@@ -705,7 +705,7 @@ jobs:
         run: |
           flutter build web --release \
             --dart-define=ENVIRONMENT=staging \
-            --dart-define=API_URL=https://staging-api.sportify.app
+            --dart-define=API_URL=https://sportify-backend-f47b5a5fe209.herokuapp.com
 
       - name: Deploy to Netlify (Staging)
         continue-on-error: true
@@ -828,7 +828,7 @@ jobs:
         run: |
           flutter build web --release \
             --dart-define=ENVIRONMENT=production \
-            --dart-define=API_URL=https://api.sportify.app
+            --dart-define=API_URL=https://sportify-backend-f47b5a5fe209.herokuapp.com
 
       - name: Deploy to Firebase Hosting (Production)
         continue-on-error: true
