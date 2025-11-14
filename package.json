@@ -1,0 +1,14 @@
+{
+  "name": "sportify",
+  "version": "1.0.0",
+  "description": "Sportify - Monorepo root package.json for Heroku detection",
+  "private": true,
+  "engines": {
+    "node": "20.x",
+    "npm": "10.x"
+  },
+  "scripts": {
+    "heroku-postbuild": "cd backend && npm install && npm run build && npx prisma generate"
+  }
+}
+
